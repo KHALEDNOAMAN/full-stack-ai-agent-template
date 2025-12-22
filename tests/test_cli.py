@@ -37,7 +37,7 @@ class TestCli:
         """Test CLI version displays."""
         result = runner.invoke(cli, ["--version"])
         assert result.exit_code == 0
-        assert "fastapi-gen" in result.output
+        assert "fastapi-fullstack" in result.output
 
 
 class TestNewCommand:
