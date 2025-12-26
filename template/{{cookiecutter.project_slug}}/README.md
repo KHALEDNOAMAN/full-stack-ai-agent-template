@@ -144,6 +144,11 @@ cd my_ai_app
 make install
 ```
 
+> **Windows Users:** The `make` command requires GNU Make which is not available by default on Windows.
+> You can either install Make via [Chocolatey](https://chocolatey.org/) (`choco install make`),
+> use WSL (Windows Subsystem for Linux), or use the raw commands from the
+> [Manual Commands Reference](#-manual-commands-reference-windows--no-make) section below.
+
 #### Step 2: Start the Database
 {%- if cookiecutter.use_postgresql %}
 
@@ -575,6 +580,224 @@ with logfire.span("process_order", order_id=order.id):
 
 For more details, see [Logfire Documentation](https://logfire.pydantic.dev/docs/integrations/).
 
+{%- if cookiecutter.enable_prometheus %}
+
+---
+
+## 📈 Prometheus Metrics
+
+This project includes Prometheus metrics for monitoring and alerting.
+
+### Accessing Metrics
+
+Metrics are exposed at the `/metrics` endpoint:
+
+```bash
+curl http://localhost:{{ cookiecutter.backend_port }}/metrics
+```
+
+### Available Metrics
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `http_requests_total` | Counter | Total HTTP requests by method, path, status |
+| `http_request_duration_seconds` | Histogram | Request latency distribution |
+| `http_requests_inprogress` | Gauge | Currently in-flight requests |
+| `http_request_size_bytes` | Histogram | Request body size |
+| `http_response_size_bytes` | Histogram | Response body size |
+
+### Prometheus Configuration
+
+Add to your `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: '{{ cookiecutter.project_slug }}'
+    static_configs:
+      - targets: ['localhost:{{ cookiecutter.backend_port }}']
+    metrics_path: /metrics
+    scrape_interval: 15s
+```
+
+### Docker Labels
+
+When running with Docker, the service includes labels for Prometheus service discovery:
+
+```yaml
+labels:
+  - "prometheus.scrape=true"
+  - "prometheus.port={{ cookiecutter.backend_port }}"
+  - "prometheus.path=/metrics"
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PROMETHEUS_METRICS_PATH` | `/metrics` | Endpoint path for metrics |
+| `PROMETHEUS_INCLUDE_IN_SCHEMA` | `false` | Include in OpenAPI schema |
+{%- endif %}
+
+{%- if cookiecutter.use_arq %}
+
+---
+
+## ⚡ Background Tasks (ARQ)
+
+This project uses [ARQ](https://arq-docs.helpmanual.io/) (Async Redis Queue) for background task processing.
+
+### Starting the Worker
+
+```bash
+# Using the CLI
+cd backend
+arq app.worker.arq_app.WorkerSettings
+
+# Using Docker
+docker-compose up -d arq_worker
+```
+
+### Enqueueing Tasks
+
+```python
+from arq.connections import ArqRedis, create_pool
+from app.core.config import settings
+
+# Create a connection pool
+redis = await create_pool(RedisSettings(
+    host=settings.ARQ_REDIS_HOST,
+    port=settings.ARQ_REDIS_PORT,
+    database=settings.ARQ_REDIS_DB,
+))
+
+# Enqueue a task
+await redis.enqueue_job('example_task', 'Hello, World!')
+
+# Enqueue with delay
+from datetime import timedelta
+await redis.enqueue_job('example_task', 'Delayed message', _defer_by=timedelta(minutes=5))
+```
+
+### Creating New Tasks
+
+Add tasks to `app/worker/arq_app.py`:
+
+```python
+async def my_task(ctx: dict, arg1: str, arg2: int) -> dict:
+    """My custom background task."""
+    # ctx contains: redis connection, job_id, job_try, etc.
+    result = await do_something(arg1, arg2)
+    return {"status": "completed", "result": result}
+
+# Register in WorkerSettings.functions list
+class WorkerSettings:
+    functions = [
+        example_task,
+        my_task,  # Add your task here
+    ]
+```
+
+### Scheduled Tasks (Cron)
+
+```python
+from arq import cron
+
+class WorkerSettings:
+    cron_jobs = [
+        cron(my_scheduled_task, minute=0, hour=0),  # Daily at midnight
+        cron(my_scheduled_task, minute={0, 30}),     # Every 30 minutes
+    ]
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ARQ_REDIS_HOST` | `localhost` | Redis host |
+| `ARQ_REDIS_PORT` | `6379` | Redis port |
+| `ARQ_REDIS_PASSWORD` | `None` | Redis password |
+| `ARQ_REDIS_DB` | `2` | Redis database number |
+{%- endif %}
+
+{%- if cookiecutter.enable_kubernetes %}
+
+---
+
+## ☸️ Kubernetes Deployment
+
+This project includes Kubernetes manifests for production deployment.
+
+### Quick Deploy
+
+```bash
+# Using kustomize (recommended)
+kubectl apply -k kubernetes/
+
+# Or apply individually
+kubectl apply -f kubernetes/namespace.yaml
+kubectl apply -f kubernetes/configmap.yaml
+kubectl apply -f kubernetes/secret.yaml
+kubectl apply -f kubernetes/deployment.yaml
+kubectl apply -f kubernetes/service.yaml
+kubectl apply -f kubernetes/ingress.yaml
+```
+
+### Manifest Files
+
+| File | Description |
+|------|-------------|
+| `namespace.yaml` | Creates dedicated namespace |
+| `configmap.yaml` | Non-sensitive configuration |
+| `secret.yaml` | Sensitive data (passwords, API keys) |
+| `deployment.yaml` | Backend + worker deployments |
+| `service.yaml` | ClusterIP service for backend |
+| `ingress.yaml` | External access with nginx ingress |
+| `kustomization.yaml` | Kustomize configuration |
+
+### Before Deploying
+
+1. **Update secrets** in `kubernetes/secret.yaml`:
+   ```bash
+   # Generate a secure SECRET_KEY
+   openssl rand -hex 32
+   ```
+
+2. **Configure ingress** in `kubernetes/ingress.yaml`:
+   - Replace `api.example.com` with your domain
+   - Uncomment TLS section for HTTPS
+
+3. **Build and push Docker image**:
+   ```bash
+   docker build -t your-registry/{{ cookiecutter.project_slug }}:latest ./backend
+   docker push your-registry/{{ cookiecutter.project_slug }}:latest
+   ```
+
+4. **Update image** in `kubernetes/kustomization.yaml`:
+   ```yaml
+   images:
+     - name: {{ cookiecutter.project_slug }}
+       newName: your-registry/{{ cookiecutter.project_slug }}
+       newTag: latest
+   ```
+
+### Scaling
+
+```bash
+# Scale backend replicas
+kubectl scale deployment {{ cookiecutter.project_slug }}-backend -n {{ cookiecutter.project_slug }} --replicas=3
+
+# View pods
+kubectl get pods -n {{ cookiecutter.project_slug }}
+
+# View logs
+kubectl logs -f deployment/{{ cookiecutter.project_slug }}-backend -n {{ cookiecutter.project_slug }}
+```
+
+### Using with Helm (optional)
+
+For more advanced deployments, consider creating a Helm chart based on these manifests.
+{%- endif %}
+
 ---
 
 ## 🛠️ Django-style CLI
@@ -632,6 +855,117 @@ Commands are **automatically discovered** from `app/commands/` - just create a f
 uv run {{ cookiecutter.project_slug }} cmd seed --count 100
 uv run {{ cookiecutter.project_slug }} cmd seed --dry-run
 ```
+
+---
+
+## 🖥️ Manual Commands Reference (Windows / No Make)
+
+If you don't have `make` installed (common on Windows), use these commands directly.
+All commands should be run from the project root directory.
+
+### Setup & Development
+
+| Task | Command |
+|------|---------|
+| Install dependencies | `uv sync --directory backend --dev` |
+| Start dev server | `uv run --directory backend {{ cookiecutter.project_slug }} server run --reload` |
+| Start prod server | `uv run --directory backend {{ cookiecutter.project_slug }} server run --host 0.0.0.0 --port {{ cookiecutter.backend_port }}` |
+| Show routes | `uv run --directory backend {{ cookiecutter.project_slug }} server routes` |
+
+### Code Quality
+
+| Task | Command |
+|------|---------|
+| Format code | `uv run --directory backend ruff format app tests cli` |
+| Fix lint issues | `uv run --directory backend ruff check app tests cli --fix` |
+| Check linting | `uv run --directory backend ruff check app tests cli` |
+| Type check | `uv run --directory backend mypy app` |
+
+### Testing
+
+| Task | Command |
+|------|---------|
+| Run tests | `uv run --directory backend pytest tests/ -v` |
+| Run with coverage | `uv run --directory backend pytest tests/ -v --cov=app --cov-report=term-missing` |
+
+{%- if cookiecutter.use_postgresql or cookiecutter.use_sqlite %}
+
+### Database
+
+| Task | Command |
+|------|---------|
+| Create migration | `uv run --directory backend {{ cookiecutter.project_slug }} db migrate -m "message"` |
+| Apply migrations | `uv run --directory backend {{ cookiecutter.project_slug }} db upgrade` |
+| Rollback migration | `uv run --directory backend {{ cookiecutter.project_slug }} db downgrade` |
+| Show current | `uv run --directory backend {{ cookiecutter.project_slug }} db current` |
+| Show history | `uv run --directory backend {{ cookiecutter.project_slug }} db history` |
+{%- endif %}
+
+{%- if cookiecutter.use_jwt %}
+
+### Users
+
+| Task | Command |
+|------|---------|
+| Create admin | `uv run --directory backend {{ cookiecutter.project_slug }} user create-admin` |
+| Create user | `uv run --directory backend {{ cookiecutter.project_slug }} user create` |
+| List users | `uv run --directory backend {{ cookiecutter.project_slug }} user list` |
+{%- endif %}
+
+{%- if cookiecutter.use_celery %}
+
+### Celery
+
+| Task | Command |
+|------|---------|
+| Start worker | `uv run --directory backend {{ cookiecutter.project_slug }} celery worker` |
+| Start beat | `uv run --directory backend {{ cookiecutter.project_slug }} celery beat` |
+| Start flower | `uv run --directory backend {{ cookiecutter.project_slug }} celery flower` |
+{%- endif %}
+
+{%- if cookiecutter.use_taskiq %}
+
+### Taskiq
+
+| Task | Command |
+|------|---------|
+| Start worker | `uv run --directory backend {{ cookiecutter.project_slug }} taskiq worker` |
+| Start scheduler | `uv run --directory backend {{ cookiecutter.project_slug }} taskiq scheduler` |
+{%- endif %}
+
+{%- if cookiecutter.use_arq %}
+
+### ARQ
+
+| Task | Command |
+|------|---------|
+| Start worker | `arq app.worker.arq_app.WorkerSettings` (from backend/) |
+{%- endif %}
+
+{%- if cookiecutter.enable_docker %}
+
+### Docker
+
+| Task | Command |
+|------|---------|
+| Start all services | `docker-compose up -d` |
+| Stop all services | `docker-compose down` |
+| View logs | `docker-compose logs -f` |
+| Build images | `docker-compose build` |
+{%- if cookiecutter.use_postgresql %}
+| Start PostgreSQL only | `docker-compose up -d db` |
+{%- endif %}
+{%- if cookiecutter.enable_redis %}
+| Start Redis only | `docker-compose up -d redis` |
+{%- endif %}
+| Start production | `docker-compose -f docker-compose.prod.yml up -d` |
+{%- endif %}
+
+### Cleanup
+
+| Task | Command (Unix) | Command (Windows PowerShell) |
+|------|----------------|------------------------------|
+| Clean cache | `find . -type d -name __pycache__ -exec rm -rf {} +` | `Get-ChildItem -Recurse -Directory -Filter __pycache__ \| Remove-Item -Recurse -Force` |
 
 ---
 

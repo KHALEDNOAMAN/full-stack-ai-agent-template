@@ -1,5 +1,7 @@
 """Tests for fastapi_gen.config module."""
 
+from unittest.mock import patch
+
 import pytest
 from pydantic import ValidationError
 
@@ -11,9 +13,29 @@ from fastapi_gen.config import (
     DatabaseType,
     LLMProviderType,
     LogfireFeatures,
+    OrmType,
     ProjectConfig,
     RateLimitStorageType,
+    get_generator_version,
 )
+
+
+class TestGetGeneratorVersion:
+    """Tests for get_generator_version function."""
+
+    def test_returns_version_when_package_exists(self) -> None:
+        """Test version is returned when package is installed."""
+        # The package should be installed in the test environment
+        version = get_generator_version()
+        # Should return either a real version or fallback
+        assert version is not None
+        assert isinstance(version, str)
+
+    def test_returns_fallback_when_package_not_found(self) -> None:
+        """Test fallback version is returned when package is not found."""
+        with patch("fastapi_gen.config.version", side_effect=Exception("Package not found")):
+            version = get_generator_version()
+            assert version == "0.0.0"
 
 
 class TestEnums:
@@ -50,6 +72,11 @@ class TestEnums:
         """Test RateLimitStorageType enum values."""
         assert RateLimitStorageType.MEMORY.value == "memory"
         assert RateLimitStorageType.REDIS.value == "redis"
+
+    def test_orm_type_values(self) -> None:
+        """Test OrmType enum values."""
+        assert OrmType.SQLALCHEMY.value == "sqlalchemy"
+        assert OrmType.SQLMODEL.value == "sqlmodel"
 
 
 class TestLogfireFeatures:
@@ -397,6 +424,48 @@ class TestOptionCombinationValidation:
                 database=DatabaseType.MONGODB,
                 enable_admin_panel=True,
             )
+
+    def test_sqlmodel_requires_sql_database(self) -> None:
+        """Test that SQLModel requires PostgreSQL or SQLite database."""
+        with pytest.raises(
+            ValidationError, match="SQLModel requires PostgreSQL or SQLite database"
+        ):
+            ProjectConfig(
+                project_name="test",
+                database=DatabaseType.MONGODB,
+                orm_type=OrmType.SQLMODEL,
+            )
+
+    def test_sqlmodel_not_supported_with_no_database(self) -> None:
+        """Test that SQLModel cannot be used without a database."""
+        with pytest.raises(
+            ValidationError, match="SQLModel requires PostgreSQL or SQLite database"
+        ):
+            ProjectConfig(
+                project_name="test",
+                database=DatabaseType.NONE,
+                orm_type=OrmType.SQLMODEL,
+            )
+
+    def test_sqlmodel_with_postgresql_is_valid(self) -> None:
+        """Test that SQLModel with PostgreSQL is valid."""
+        config = ProjectConfig(
+            project_name="test",
+            database=DatabaseType.POSTGRESQL,
+            orm_type=OrmType.SQLMODEL,
+        )
+        assert config.use_sqlmodel is True
+        assert config.use_sqlalchemy is False
+
+    def test_sqlmodel_with_sqlite_is_valid(self) -> None:
+        """Test that SQLModel with SQLite is valid."""
+        config = ProjectConfig(
+            project_name="test",
+            database=DatabaseType.SQLITE,
+            orm_type=OrmType.SQLMODEL,
+        )
+        assert config.use_sqlmodel is True
+        assert config.use_sqlalchemy is False
 
     def test_caching_requires_redis(self) -> None:
         """Test that caching requires Redis to be enabled."""

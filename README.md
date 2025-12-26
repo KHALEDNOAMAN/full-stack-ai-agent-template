@@ -150,6 +150,10 @@ cd my_ai_app
 make install
 ```
 
+> **Windows Users:** The `make` command requires GNU Make which is not available by default on Windows.
+> Install via [Chocolatey](https://chocolatey.org/) (`choco install make`), use WSL, or run raw commands manually.
+> Each generated project includes a "Manual Commands Reference" section in its README with all commands.
+
 #### 2. Start the database
 
 ```bash
@@ -620,6 +624,7 @@ generated_at = "2024-12-21T10:30:00+00:00"
 | Option | Values | Description |
 |--------|--------|-------------|
 | **Database** | `postgresql`, `mongodb`, `sqlite`, `none` | Async by default |
+| **ORM** | `sqlalchemy`, `sqlmodel` | SQLModel for simplified syntax |
 | **Auth** | `jwt`, `api_key`, `both`, `none` | JWT includes user management |
 | **OAuth** | `none`, `google` | Social login |
 | **AI Framework** | `pydantic_ai`, `langchain` | Choose your AI agent framework |
