@@ -32,10 +32,10 @@ console = Console()
 def show_header() -> None:
     """Display the generator header."""
     header = Text()
-    header.append("FastAPI Project Generator", style="bold cyan")
+    header.append("Full-Stack AI Agent Template", style="bold cyan")
     header.append("\n")
-    header.append("with Logfire Observability", style="dim")
-    console.print(Panel(header, title="[bold green]fastapi-gen[/]", border_style="green"))
+    header.append("FastAPI + Next.js with AI Agents & 20+ Integrations", style="dim")
+    console.print(Panel(header, title="[bold green]fastapi-fullstack[/]", border_style="green"))
     console.print()
 
 
@@ -676,6 +676,19 @@ def prompt_llm_provider(ai_framework: AIFrameworkType) -> LLMProviderType:
     )
 
 
+def prompt_langsmith() -> bool:
+    """Prompt for LangSmith observability."""
+    return cast(
+        bool,
+        _check_cancelled(
+            questionary.confirm(
+                "Enable LangSmith observability (tracing, prompt management)?",
+                default=False,
+            ).ask()
+        ),
+    )
+
+
 def prompt_websocket_auth(auth: AuthType) -> WebSocketAuthType:
     """Prompt for WebSocket authentication method for AI Agent.
 
@@ -884,10 +897,18 @@ def run_interactive_prompts() -> ProjectConfig:
     llm_provider = LLMProviderType.OPENAI
     websocket_auth = WebSocketAuthType.NONE
     enable_conversation_persistence = False
+    enable_langsmith = False
     if integrations.get("enable_ai_agent"):
         ai_framework = prompt_ai_framework()
         llm_provider = prompt_llm_provider(ai_framework)
         websocket_auth = prompt_websocket_auth(auth=auth)
+        # LangSmith for LangChain-ecosystem frameworks
+        if ai_framework in (
+            AIFrameworkType.LANGCHAIN,
+            AIFrameworkType.LANGGRAPH,
+            AIFrameworkType.DEEPAGENTS,
+        ):
+            enable_langsmith = prompt_langsmith()
         # Only offer persistence if database is enabled
         if database != DatabaseType.NONE:
             enable_conversation_persistence = _check_cancelled(
@@ -941,6 +962,7 @@ def run_interactive_prompts() -> ProjectConfig:
         llm_provider=llm_provider,
         websocket_auth=websocket_auth,
         enable_conversation_persistence=enable_conversation_persistence,
+        enable_langsmith=enable_langsmith,
         admin_environments=admin_environments,
         admin_require_auth=admin_require_auth,
         rate_limit_requests=rate_limit_requests,
@@ -975,6 +997,8 @@ def show_summary(config: ProjectConfig) -> None:
         auth_str += f" + {config.oauth_provider.value} OAuth"
     console.print(f"  [cyan]Auth:[/] {auth_str}")
     console.print(f"  [cyan]Logfire:[/] {'enabled' if config.enable_logfire else 'disabled'}")
+    if config.enable_langsmith:
+        console.print("  [cyan]LangSmith:[/] enabled")
     console.print(f"  [cyan]Background Tasks:[/] {config.background_tasks.value}")
     console.print(f"  [cyan]Frontend:[/] {config.frontend.value}")
 
