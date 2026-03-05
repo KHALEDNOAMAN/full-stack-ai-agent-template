@@ -8,8 +8,8 @@
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-features">Features</a> •
   <a href="#-demo">Demo</a> •
-  <a href="https://template.vstorm.co/">Website</a> •
-  <a href="https://template.vstorm.co/configurator/">Configurator</a> •
+  <a href="https://oss.vstorm.co/">Website</a> •
+  <a href="https://oss.vstorm.co/full-stack-ai-agent-template/configurator/">Configurator</a> •
   <a href="https://pypi.org/project/fastapi-fullstack/">PyPI</a> •
   <a href="#-documentation">Docs</a>
 </p>
@@ -179,6 +179,8 @@ Generated projects include **CLAUDE.md** and **AGENTS.md** files optimized for A
 
 ## 🚀 Quick Start
 
+> **Prefer a visual configurator?** Use the [Web Configurator](https://oss.vstorm.co/full-stack-ai-agent-template/configurator/) to configure your project in the browser and download a ZIP — no CLI installation needed.
+
 ### Installation
 
 ```bash
@@ -195,8 +197,8 @@ pipx install fastapi-fullstack
 ### Create Your Project
 
 ```bash
-# Interactive wizard (recommended)
-fastapi-fullstack new
+# Interactive wizard (recommended — runs by default)
+fastapi-fullstack
 
 # Quick mode with options
 fastapi-fullstack create my_ai_app \
