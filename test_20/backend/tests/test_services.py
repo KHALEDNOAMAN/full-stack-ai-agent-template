@@ -20,14 +20,14 @@ class MockUser:
         full_name="Test User",
         hashed_password="$2b$12$hashedpassword",
         is_active=True,
-        is_superuser=False,
+        role="user",
     ):
         self.id = id or uuid4()
         self.email = email
         self.full_name = full_name
         self.hashed_password = hashed_password
         self.is_active = is_active
-        self.is_superuser = is_superuser
+        self.role = role
 
 
 class TestUserServicePostgresql:

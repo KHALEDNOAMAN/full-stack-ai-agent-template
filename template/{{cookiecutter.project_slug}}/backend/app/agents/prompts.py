@@ -1,4 +1,3 @@
-{%- if cookiecutter.enable_ai_agent %}
 """System prompts for AI agents.
 
 Centralized location for all agent prompts to make them easy to find and modify.
@@ -30,8 +29,3 @@ Guidelines:
 - If search returns no results, inform the user and provide a general response
 - Combine information from multiple sources when relevant
 - Never fabricate information — only use what the search results provide"""
-
-
-{%- else %}
-"""AI Agent prompts - not configured."""
-{%- endif %}

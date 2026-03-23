@@ -1,4 +1,3 @@
-{%- if cookiecutter.enable_ai_agent %}
 /**
  * File upload API client for chat attachments.
  */
@@ -33,4 +32,3 @@ export async function uploadFile(file: File): Promise<FileUploadResponse> {
 export function getFileUrl(fileId: string): string {
   return `/api/files/${fileId}`;
 }
-{%- endif %}

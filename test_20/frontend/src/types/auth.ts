@@ -7,7 +7,7 @@ export interface User {
   email: string;
   name?: string;
   is_active: boolean;
-  is_superuser?: boolean;
+  role?: string;
   created_at: string;
   oauth_provider?: string | null;
   avatar_url?: string | null;
