@@ -14,9 +14,10 @@ from datetime import timedelta
 from typing import Any
 from uuid import UUID
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Request, status
 
-from app.api.deps import CurrentAppAdmin, UserSvc
+from app.api.deps import CurrentAppAdmin, DBSession, UserSvc
+from app.core.audit import record_audit
 from app.core.security import create_access_token
 from app.schemas.user import UserRead, UserUpdate
 
@@ -46,28 +47,53 @@ async def get_user(
 
 @router.patch("/{user_id}", response_model=UserRead)
 async def update_user(
+    request: Request,
     user_id: UUID,
     user_in: UserUpdate,
-    _: CurrentAppAdmin,
+    admin: CurrentAppAdmin,
+    db: DBSession,
     service: UserSvc,
 ) -> Any:
-    return await service.update(user_id, user_in)
+    user = await service.update(user_id, user_in)
+    await record_audit(
+        db,
+        actor_user_id=admin.id,
+        action="admin.user.update",
+        target_type="user",
+        target_id=str(user_id),
+        details=user_in.model_dump(exclude_unset=True),
+        ip_address=request.client.host if request.client else None,
+    )
+    return user
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT, response_model=None)
 async def delete_user(
+    request: Request,
     user_id: UUID,
-    _: CurrentAppAdmin,
+    admin: CurrentAppAdmin,
+    db: DBSession,
     service: UserSvc,
 ) -> None:
-    await service.get_by_id(user_id)  # raises 404 if not found
+    target = await service.get_by_id(user_id)  # raises 404 if not found
     await service.delete(user_id)
+    await record_audit(
+        db,
+        actor_user_id=admin.id,
+        action="admin.user.delete",
+        target_type="user",
+        target_id=str(user_id),
+        details={"email": target.email},
+        ip_address=request.client.host if request.client else None,
+    )
 
 
 @router.post("/{user_id}/impersonate", response_model=dict)
 async def impersonate_user(
+    request: Request,
     user_id: UUID,
     admin: CurrentAppAdmin,
+    db: DBSession,
     service: UserSvc,
 ) -> Any:
     """Issue a short-lived (1h) access token to act as the target user."""
@@ -75,6 +101,15 @@ async def impersonate_user(
     token = create_access_token(
         subject=str(target.id),
         expires_delta=timedelta(hours=1),
+    )
+    await record_audit(
+        db,
+        actor_user_id=admin.id,
+        action="admin.user.impersonate",
+        target_type="user",
+        target_id=str(target.id),
+        details={"target_email": target.email, "expires_in": 3600},
+        ip_address=request.client.host if request.client else None,
     )
     return {
         "access_token": token,

@@ -49,6 +49,10 @@
   --color-brand: oklch(var(--brand-l) var(--brand-c) var(--brand-h));
   --color-brand-hover: oklch(calc(var(--brand-l) - 8%) var(--brand-c) var(--brand-h));
   --color-brand-muted: oklch(var(--brand-l) calc(var(--brand-c) * 0.4) var(--brand-h));
+  /* Chart strokes/fills — defaults to a darker brand variant so charts stay
+     readable on light backgrounds even when the brand itself is high-lightness
+     (e.g. lime). Dark themes override this to use the bright brand directly. */
+  --color-chart: oklch(55% var(--brand-c) var(--brand-h));
 
   /* Light theme — cream */
   --color-background: oklch(96% 0.005 90);
@@ -109,6 +113,7 @@
     --color-accent-foreground: oklch(95% 0 0);
     --color-border: oklch(22% 0.005 90);
     --color-input: oklch(22% 0.005 90);
+    --color-chart: var(--color-brand);
   }
 }
 
@@ -129,6 +134,7 @@
   --color-accent-foreground: oklch(95% 0 0);
   --color-border: oklch(22% 0.005 90);
   --color-input: oklch(22% 0.005 90);
+  --color-chart: var(--color-brand);
 }
 
 /* =========================================================================
@@ -154,6 +160,7 @@
   --color-muted: oklch(18% 0.005 90);
   --color-muted-foreground: oklch(63% 0.005 90);
   --color-border: oklch(22% 0.005 90);
+  --color-chart: var(--color-brand);
 }
 
 @layer base {
@@ -317,30 +324,53 @@
   }
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar — theme-aware, derived from --color-foreground.
+   Subtle at rest, more visible while the user is hovering the scroll area. */
 @layer utilities {
   .scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: oklch(50% 0 0 / 0.3) transparent;
+    /* Firefox: thumb + track. Colors are derived from the foreground so the
+       scrollbar reads correctly on both light cream and dark surfaces. */
+    scrollbar-color: oklch(from var(--color-foreground) l c h / 0.18) transparent;
+    transition: scrollbar-color 150ms ease;
+  }
+
+  .scrollbar-thin:hover {
+    scrollbar-color: oklch(from var(--color-foreground) l c h / 0.35) transparent;
   }
 
   .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
-    border-radius: 3px;
   }
 
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background: oklch(50% 0 0 / 0.3);
-    border-radius: 3px;
+    background: oklch(from var(--color-foreground) l c h / 0.18);
+    border-radius: 9999px;
+    /* 2px transparent border + background-clip:padding-box gives a visible
+       thumb width of ~4px while keeping a wider hit target. */
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    transition: background-color 150ms ease;
   }
 
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background: oklch(50% 0 0 / 0.5);
+  .scrollbar-thin:hover::-webkit-scrollbar-thumb {
+    background: oklch(from var(--color-foreground) l c h / 0.35);
+    background-clip: padding-box;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover,
+  .scrollbar-thin::-webkit-scrollbar-thumb:active {
+    background: oklch(from var(--color-foreground) l c h / 0.55);
+    background-clip: padding-box;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-corner {
+    background: transparent;
   }
 }
 

@@ -3,24 +3,28 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { Trash2 } from "lucide-react";
 import type { KnowledgeBase } from "@/types";
 
 interface KBListProps {
   kbs: KnowledgeBase[];
-  onToggle: (id: string, active: boolean) => void;
   onDelete: (id: string) => void;
   canDelete?: boolean;
 }
 
 const scopeColors: Record<string, string> = {
   personal: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  organization: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  org: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
   app: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
 };
 
-export function KBList({ kbs, onToggle, onDelete, canDelete = true }: KBListProps) {
+const scopeLabels: Record<string, string> = {
+  personal: "personal",
+  org: "organization",
+  app: "app",
+};
+
+export function KBList({ kbs, onDelete, canDelete = true }: KBListProps) {
   const grouped = kbs.reduce<Record<string, KnowledgeBase[]>>((acc, kb) => {
     const bucket = acc[kb.scope] ?? (acc[kb.scope] = []);
     bucket.push(kb);
@@ -29,7 +33,7 @@ export function KBList({ kbs, onToggle, onDelete, canDelete = true }: KBListProp
 
   const sections = [
     { key: "personal", label: "Personal" },
-    { key: "organization", label: "Organization" },
+    { key: "org", label: "Organization" },
     { key: "app", label: "App-wide" },
   ].filter((s) => grouped[s.key]?.length);
 
@@ -64,21 +68,15 @@ export function KBList({ kbs, onToggle, onDelete, canDelete = true }: KBListProp
                     <Badge
                       className={`shrink-0 px-1.5 py-0.5 text-[10px] ${scopeColors[kb.scope]}`}
                     >
-                      {kb.scope}
+                      {scopeLabels[kb.scope] ?? kb.scope}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="flex items-center justify-between pt-0">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={kb.is_active}
-                      onCheckedChange={(checked) => onToggle(kb.id, checked)}
-                    />
-                    <span className="text-muted-foreground text-xs">
-                      {kb.is_active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                  {canDelete && (
+                  <span className="text-muted-foreground font-mono text-xs tracking-wider uppercase">
+                    {kb.is_default ? "Default" : "Knowledge base"}
+                  </span>
+                  {canDelete && !kb.is_default && (
                     <Button
                       variant="ghost"
                       size="sm"

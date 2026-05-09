@@ -12,9 +12,9 @@ import {
   YAxis,
 } from "recharts";
 
+import { SegmentedControl } from "@/components/dashboard/segmented-control";
 import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { apiClient, ApiError } from "@/lib/api-client";
-import { cn } from "@/lib/utils";
 
 interface UsageBucket {
   day: string;
@@ -31,7 +31,6 @@ interface UsageTimelineRead {
 }
 
 const RANGES = [
-  { label: "24h", days: 1 },
   { label: "7d", days: 7 },
   { label: "30d", days: 30 },
   { label: "90d", days: 90 },
@@ -148,8 +147,8 @@ export function UsageTimeline() {
             <AreaChart data={chartData} margin={{ top: 10, right: 4, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="usage-gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="var(--color-brand)" stopOpacity={0.45} />
-                  <stop offset="100%" stopColor="var(--color-brand)" stopOpacity={0} />
+                  <stop offset="0%" stopColor="var(--color-chart)" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="var(--color-chart)" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -176,12 +175,12 @@ export function UsageTimeline() {
               />
               <Tooltip
                 content={<UsageTooltip metric={metric} />}
-                cursor={{ stroke: "var(--color-brand)", strokeOpacity: 0.4 }}
+                cursor={{ stroke: "var(--color-chart)", strokeOpacity: 0.4 }}
               />
               <Area
                 type="monotone"
                 dataKey={metric}
-                stroke="var(--color-brand)"
+                stroke="var(--color-chart)"
                 strokeWidth={2}
                 fill="url(#usage-gradient)"
                 isAnimationActive={false}
@@ -190,36 +189,6 @@ export function UsageTimeline() {
           </ResponsiveContainer>
         )}
       </div>
-    </div>
-  );
-}
-
-function SegmentedControl({
-  value,
-  onChange,
-  options,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: { label: string; value: string }[];
-}) {
-  return (
-    <div className="border-foreground/15 bg-background inline-flex rounded-full border p-0.5">
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          onClick={() => onChange(opt.value)}
-          className={cn(
-            "rounded-full px-3 py-1 font-mono text-[11px] tracking-wider uppercase transition-colors",
-            value === opt.value
-              ? "bg-foreground text-background"
-              : "text-foreground/55 hover:text-foreground",
-          )}
-        >
-          {opt.label}
-        </button>
-      ))}
     </div>
   );
 }
@@ -247,10 +216,8 @@ function UsageTooltip({
   );
 }
 
-function formatDayLabel(day: string, range: number): string {
+function formatDayLabel(day: string, _range: number): string {
   const d = new Date(day);
   if (Number.isNaN(d.getTime())) return day;
-  if (range <= 1) return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
-  if (range <= 30) return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }

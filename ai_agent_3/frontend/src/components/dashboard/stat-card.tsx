@@ -74,13 +74,13 @@ export function StatCard({
       </div>
 
       {trend && (
-        <div className="mt-1.5 flex items-center gap-1.5">
+        <div className="mt-2 flex items-center gap-1.5">
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 font-mono text-[11px] font-semibold",
-              trend === "up" && "text-brand",
-              trend === "down" && "text-destructive",
-              trend === "flat" && "text-foreground/55",
+              "inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold tabular-nums",
+              trend === "up" && "bg-chart/15 text-chart",
+              trend === "down" && "bg-destructive/10 text-destructive",
+              trend === "flat" && "bg-foreground/8 text-foreground/65",
             )}
           >
             {trend === "up" && <ArrowUpRight className="h-3 w-3" />}

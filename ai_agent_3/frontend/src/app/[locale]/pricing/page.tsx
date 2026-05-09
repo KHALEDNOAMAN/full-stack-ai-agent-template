@@ -30,7 +30,7 @@ interface PlanRead {
   prices: Array<{
     id: string;
     currency: string;
-    unit_amount: number;
+    amount_cents: number;
     interval: string;
     is_active: boolean;
     trial_period_days: number | null;
@@ -95,7 +95,7 @@ function realPlanToCard(plan: PlanRead, billing: "month" | "year"): PricingCard 
     id: plan.id,
     name: plan.display_name,
     price: price
-      ? (price.unit_amount / 100).toLocaleString("en-US", {
+      ? (price.amount_cents / 100).toLocaleString("en-US", {
           style: "currency",
           currency: price.currency.toUpperCase(),
           minimumFractionDigits: 0,

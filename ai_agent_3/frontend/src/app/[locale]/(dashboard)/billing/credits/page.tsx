@@ -81,7 +81,7 @@ export default function CreditsPage() {
     [timeline],
   );
 
-  const low = balance && balance.threshold > 0 && balance.balance < balance.threshold;
+  const low = balance && balance.low_threshold > 0 && balance.balance < balance.low_threshold;
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-6 pb-10">
@@ -146,7 +146,7 @@ export default function CreditsPage() {
             {low && balance && (
               <p className="text-destructive mt-3 inline-flex items-center gap-2 text-xs font-medium">
                 <AlertCircle className="h-3.5 w-3.5" />
-                Below alert threshold of {balance.threshold.toLocaleString()} credits.
+                Below alert threshold of {balance.low_threshold.toLocaleString()} credits.
               </p>
             )}
           </div>

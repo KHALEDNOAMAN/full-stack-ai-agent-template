@@ -47,7 +47,7 @@ export default function ProfileSettingsPage() {
   const { user } = useAuth();
   const { setUser } = useAuthStore();
 
-  const [name, setName] = useState(user?.name ?? "");
+  const [name, setName] = useState(user?.full_name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -57,11 +57,9 @@ export default function ProfileSettingsPage() {
   const [sessionsLoading, setSessionsLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
-      setName(user.name ?? "");
-      setEmail(user.email ?? "");
-    }
-  }, [user?.id, user?.email, user?.name]);
+    setName(user?.full_name ?? "");
+    setEmail(user?.email ?? "");
+  }, [user?.id, user?.email, user?.full_name]);
 
   const fetchSessions = useCallback(async () => {
     try {
@@ -82,9 +80,9 @@ export default function ProfileSettingsPage() {
     if (!user) return;
     setSaving(true);
     try {
-      const payload: { email?: string; name?: string | null } = {};
+      const payload: { email?: string; full_name?: string | null } = {};
       if (email !== user.email) payload.email = email;
-      if (name !== (user.name ?? "")) payload.name = name || null;
+      if (name !== (user.full_name ?? "")) payload.full_name = name || null;
       if (Object.keys(payload).length === 0) {
         toast.info("Nothing changed");
         setSaving(false);
@@ -174,8 +172,8 @@ export default function ProfileSettingsPage() {
                 unoptimized
               />
             ) : (
-              <span className="font-mono text-foreground text-lg font-semibold">
-                {(user.name || user.email).slice(0, 2).toUpperCase()}
+              <span className="text-foreground font-mono text-lg font-semibold">
+                {(user.full_name || user.email).slice(0, 2).toUpperCase()}
               </span>
             )}
             <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
@@ -198,7 +196,11 @@ export default function ProfileSettingsPage() {
               disabled={avatarUploading}
               className="rounded-full"
             >
-              {avatarUploading ? "Uploading…" : user.avatar_url ? "Replace avatar" : "Upload avatar"}
+              {avatarUploading
+                ? "Uploading…"
+                : user.avatar_url
+                  ? "Replace avatar"
+                  : "Upload avatar"}
             </Button>
             <p className="text-foreground/55 mt-2 text-xs">
               {user.role === "admin" ? "Admin · " : ""}Member since{" "}
@@ -219,7 +221,10 @@ export default function ProfileSettingsPage() {
       >
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="profile-name" className="text-foreground/80 text-xs font-medium uppercase tracking-wider">
+            <Label
+              htmlFor="profile-name"
+              className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
+            >
               Display name
             </Label>
             <Input
@@ -231,7 +236,10 @@ export default function ProfileSettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="profile-email" className="text-foreground/80 text-xs font-medium uppercase tracking-wider">
+            <Label
+              htmlFor="profile-email"
+              className="text-foreground/80 text-xs font-medium tracking-wider uppercase"
+            >
               Email
             </Label>
             <Input
@@ -313,7 +321,7 @@ export default function ProfileSettingsPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-destructive hover:text-destructive shrink-0 h-8"
+                    className="text-destructive hover:text-destructive h-8 shrink-0"
                     onClick={() => handleRevokeSession(session.id)}
                     title="Revoke session"
                   >
@@ -328,4 +336,3 @@ export default function ProfileSettingsPage() {
     </div>
   );
 }
-

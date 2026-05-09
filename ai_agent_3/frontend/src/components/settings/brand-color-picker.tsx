@@ -70,10 +70,26 @@ const STORAGE_KEY = "settings.brand_color_preset";
 function applyPreset(p: Preset) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
+  // Tailwind v4 resolves the `oklch(var(--brand-l)...)` composition at build
+  // time, so overriding the parts at runtime has no effect on utilities. Set
+  // the final color tokens directly — those are what `bg-brand` / `text-brand`
+  // / charts read.
+  const brand = `oklch(${p.l}% ${p.c} ${p.h})`;
+  const brandHover = `oklch(${Math.max(0, p.l - 8)}% ${p.c} ${p.h})`;
+  const brandMuted = `oklch(${p.l}% ${p.c * 0.4} ${p.h})`;
+  const brandFg = `oklch(${p.fgL}% 0 0)`;
+  // Charts: use a darker brand variant on light themes (so the brand stays
+  // readable on white surfaces), but full brand on dark themes — matches the
+  // logic baked into globals.css.
+  const chart = `oklch(55% ${p.c} ${p.h})`;
   root.style.setProperty("--brand-h", String(p.h));
   root.style.setProperty("--brand-c", String(p.c));
   root.style.setProperty("--brand-l", `${p.l}%`);
-  root.style.setProperty("--color-brand-foreground", `oklch(${p.fgL}% 0 0)`);
+  root.style.setProperty("--color-brand", brand);
+  root.style.setProperty("--color-brand-hover", brandHover);
+  root.style.setProperty("--color-brand-muted", brandMuted);
+  root.style.setProperty("--color-brand-foreground", brandFg);
+  root.style.setProperty("--color-chart", chart);
 }
 
 export function BrandColorPicker() {

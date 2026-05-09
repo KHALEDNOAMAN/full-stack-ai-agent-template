@@ -28,17 +28,23 @@ export default function IntegrationsSettingsPage() {
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
 
+  // Gate Stripe by the same flag the marketing site uses for the pricing page —
+  // when the deployer hasn't set it the portal button just 404s.
+  const stripeEnabled = process.env.NEXT_PUBLIC_STRIPE_ENABLED === "true";
+
   const integrations: IntegrationItem[] = [
     {
       key: "stripe",
       name: "Stripe billing",
       description: "Subscriptions, invoices, customer portal — managed by Stripe.",
       brand: "stripe",
-      status: "connected",
-      cta: {
-        label: isLoading ? "Opening…" : "Open Stripe portal",
-        onClick: () => openPortal(),
-      },
+      status: stripeEnabled ? "connected" : "available",
+      cta: stripeEnabled
+        ? {
+            label: isLoading ? "Opening…" : "Open Stripe portal",
+            onClick: () => openPortal(),
+          }
+        : { label: "Configure in env", href: "/help#workspace" },
     },
     {
       key: "google",

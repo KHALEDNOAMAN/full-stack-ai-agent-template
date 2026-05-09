@@ -3,7 +3,6 @@
 import enum
 import uuid
 
-from sqlalchemy import Enum as SQLEnum
 from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -36,7 +35,9 @@ class CreditTransaction(Base, TimestampMixin):
     )
     delta: Mapped[int] = mapped_column(Integer)
     balance_after: Mapped[int] = mapped_column(Integer)
-    type: Mapped[CreditTransactionType] = mapped_column(SQLEnum(CreditTransactionType), index=True)
+    # Stored as a plain VARCHAR(32) to match the migration. CreditTransactionType
+    # is a `str, enum.Enum` so its members serialize cleanly via their .value.
+    type: Mapped[str] = mapped_column(String(32), index=True)
     description: Mapped[str] = mapped_column(Text)
     stripe_reference: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     usage_event_id: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)

@@ -67,7 +67,7 @@ export function RegisterForm() {
 
     setIsLoading(true);
     try {
-      await register({ email, password, name: name || undefined });
+      await register({ email, password, full_name: name || undefined });
       toast.success(t("registerSuccess"));
       router.push(ROUTES.LOGIN + "?registered=true");
     } catch (err) {

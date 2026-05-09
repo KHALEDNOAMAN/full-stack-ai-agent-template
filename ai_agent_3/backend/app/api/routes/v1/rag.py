@@ -14,6 +14,7 @@ from fastapi.responses import FileResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 
 from app.api.deps import (
+    ActiveOrg,
     CurrentAdmin,
     CurrentUser,
     IngestionSvc,
@@ -184,6 +185,7 @@ async def ingest_file(
     rag_doc_svc: RAGDocumentSvc,
     vector_store: VectorStoreSvc,
     _: CurrentAdmin,
+    active_org: ActiveOrg,
     file: UploadFile = File(...),
     replace: bool = Query(False),
 ) -> Any:
@@ -195,6 +197,7 @@ async def ingest_file(
         filename=file.filename or "unknown",
         replace=replace,
         vector_store=vector_store,
+        organization_id=active_org.id,
     )
 
 

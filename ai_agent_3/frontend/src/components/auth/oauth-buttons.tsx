@@ -40,7 +40,7 @@ export function OAuthButtons({ next, variant = "signin" }: OAuthButtonsProps) {
   return (
     <div className="space-y-2.5">
       {providers.map((provider) => {
-        const url = `${BACKEND_URL}/api/v1/auth/oauth/${provider}/login${
+        const url = `${BACKEND_URL}/api/v1/oauth/${provider}/login${
           next ? `?next=${encodeURIComponent(next)}` : ""
         }`;
         const label =

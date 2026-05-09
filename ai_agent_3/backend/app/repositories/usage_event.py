@@ -65,15 +65,25 @@ async def list_for_org(
 async def aggregate_for_org(
     db: AsyncSession,
     organization_id: uuid.UUID,
+    *,
+    since: datetime | None = None,
 ) -> dict:
-    """Return total tokens, credits, and per-model breakdown."""
+    """Return total tokens, credits, and per-model breakdown.
+
+    When ``since`` is provided, restricts the aggregation to events at or after
+    that timestamp; otherwise aggregates over the full retention window.
+    """
+    filters = [UsageEvent.organization_id == organization_id]
+    if since is not None:
+        filters.append(UsageEvent.created_at >= since)
+
     total_q = select(
         func.sum(UsageEvent.input_tokens).label("total_input"),
         func.sum(UsageEvent.output_tokens).label("total_output"),
         func.sum(UsageEvent.cached_tokens).label("total_cached"),
         func.sum(UsageEvent.credits_charged).label("total_credits"),
         func.count().label("total_calls"),
-    ).where(UsageEvent.organization_id == organization_id)
+    ).where(*filters)
     row = (await db.execute(total_q)).one()
 
     by_model_q = (
@@ -86,7 +96,7 @@ async def aggregate_for_org(
             func.sum(UsageEvent.credits_charged).label("credits_charged"),
             func.count().label("total_calls"),
         )
-        .where(UsageEvent.organization_id == organization_id)
+        .where(*filters)
         .group_by(UsageEvent.model, UsageEvent.provider)
         .order_by(func.sum(UsageEvent.credits_charged).desc())
     )
