@@ -135,11 +135,16 @@ export function ShareDialog({ conversationId, open, onOpenChange }: ShareDialogP
                 <SelectItem value="edit">Edit</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={handleShare} disabled={isLoading || isSharing} size="icon">
+            <Button
+              onClick={handleShare}
+              disabled={isLoading || isSharing}
+              size="icon"
+              aria-label="Share conversation"
+            >
               {isSharing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
               ) : (
-                <UserPlus className="h-4 w-4" />
+                <UserPlus className="h-4 w-4" aria-hidden />
               )}
             </Button>
           </div>
@@ -160,8 +165,13 @@ export function ShareDialog({ conversationId, open, onOpenChange }: ShareDialogP
               {t("generateShareLink")}
             </Button>
             {shareLink && (
-              <Button variant="secondary" size="icon" onClick={handleCopyLink}>
-                <Copy className="h-4 w-4" />
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={handleCopyLink}
+                aria-label="Copy share link"
+              >
+                <Copy className="h-4 w-4" aria-hidden />
               </Button>
             )}
           </div>

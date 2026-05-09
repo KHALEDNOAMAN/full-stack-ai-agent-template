@@ -62,8 +62,7 @@ export function ChatInput({ onSend, disabled, isProcessing }: ChatInputProps) {
       return;
     }
 
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.info("Voice input is only supported in Chrome. Use Chrome for speech-to-text.");
       return;
@@ -109,33 +108,30 @@ export function ChatInput({ onSend, disabled, isProcessing }: ChatInputProps) {
   }, [isListening, message]);
 
   // File upload to backend
-  const handleFileSelect = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files;
-      if (!files || files.length === 0) return;
-      e.target.value = "";
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    e.target.value = "";
 
-      const maxMb = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_MB || "50", 10);
-      for (const file of Array.from(files)) {
-        if (file.size > maxMb * 1024 * 1024) {
-          toast.error(`${file.name}: File too large. Maximum ${maxMb}MB.`);
-          continue;
-        }
-
-        setIsUploading(true);
-        try {
-          const result = await uploadFile(file);
-          setAttachedFiles((prev) => [...prev, result]);
-        } catch (err) {
-          const msg = err instanceof Error ? err.message : "Upload failed";
-          toast.error(`${file.name}: ${msg}`);
-        } finally {
-          setIsUploading(false);
-        }
+    const maxMb = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_MB || "50", 10);
+    for (const file of Array.from(files)) {
+      if (file.size > maxMb * 1024 * 1024) {
+        toast.error(`${file.name}: File too large. Maximum ${maxMb}MB.`);
+        continue;
       }
-    },
-    []
-  );
+
+      setIsUploading(true);
+      try {
+        const result = await uploadFile(file);
+        setAttachedFiles((prev) => [...prev, result]);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Upload failed";
+        toast.error(`${file.name}: ${msg}`);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  }, []);
 
   const removeFile = (fileId: string) => {
     setAttachedFiles((prev) => prev.filter((f) => f.id !== fileId));
@@ -160,7 +156,7 @@ export function ChatInput({ onSend, disabled, isProcessing }: ChatInputProps) {
                   <button
                     type="button"
                     onClick={() => removeFile(file.id)}
-                    className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                    className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -168,9 +164,7 @@ export function ChatInput({ onSend, disabled, isProcessing }: ChatInputProps) {
               ) : (
                 <Badge variant="secondary" className="gap-1.5 pr-1">
                   <FileText className="h-3 w-3" />
-                  <span className="max-w-[150px] truncate text-xs">
-                    {file.filename}
-                  </span>
+                  <span className="max-w-[150px] truncate text-xs">{file.filename}</span>
                   <button
                     type="button"
                     onClick={() => removeFile(file.id)}
@@ -253,11 +247,7 @@ export function ChatInput({ onSend, disabled, isProcessing }: ChatInputProps) {
             disabled={disabled || isUploading || (!message.trim() && attachedFiles.length === 0)}
             className="h-9 w-9 rounded-lg"
           >
-            {isProcessing ? (
-              <Spinner className="h-4 w-4" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
+            {isProcessing ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />}
             <span className="sr-only">Send message</span>
           </Button>
         </div>

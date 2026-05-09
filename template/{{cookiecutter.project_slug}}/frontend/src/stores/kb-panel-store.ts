@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { create } from "zustand";
 
 interface KBPanelState {
@@ -16,7 +15,3 @@ export const useKBPanelStore = create<KBPanelState>((set) => ({
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
 }));
-{% endraw %}
-{%- else %}
-export {};
-{%- endif %}

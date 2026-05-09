@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
@@ -30,7 +29,7 @@ export function useMembers(orgId: string) {
       try {
         const updated = await apiClient.patch<OrganizationMember>(
           `/orgs/${orgId}/members/${userId}`,
-          { role }
+          { role },
         );
         setMembers((prev) => prev.map((m) => (m.user_id === userId ? updated : m)));
         toast.success("Role updated");
@@ -38,7 +37,7 @@ export function useMembers(orgId: string) {
         toast.error("Failed to update role");
       }
     },
-    [orgId]
+    [orgId],
   );
 
   const removeMember = useCallback(
@@ -52,10 +51,8 @@ export function useMembers(orgId: string) {
         toast.error("Failed to remove member");
       }
     },
-    [orgId]
+    [orgId],
   );
 
   return { members, total, isLoading, fetchMembers, changeRole, removeMember };
 }
-{% endraw %}
-{%- endif %}

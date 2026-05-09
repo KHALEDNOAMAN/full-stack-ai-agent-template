@@ -1,5 +1,6 @@
 """User schemas."""
 
+from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
@@ -50,6 +51,10 @@ class UserUpdate(BaseSchema):
     full_name: str | None = Field(default=None, max_length=255)
     is_active: bool | None = None
     role: UserRole | None = None
+    onboarding_completed_at: datetime | None = Field(
+        default=None,
+        description="Set to a timestamp to mark onboarding complete; null to reset.",
+    )
 
     @field_validator("email")
     @classmethod
@@ -63,6 +68,7 @@ class UserRead(UserBase, TimestampSchema):
     id: UUID
     role: UserRole = UserRole.USER
     avatar_url: str | None = None
+    onboarding_completed_at: datetime | None = None
 
 
 class UserInDB(UserRead):

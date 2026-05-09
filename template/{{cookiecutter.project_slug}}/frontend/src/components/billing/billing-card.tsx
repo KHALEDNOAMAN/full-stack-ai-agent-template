@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_billing and cookiecutter.enable_teams %}
 "use client";
-{% raw %}
+
 import { useState } from "react";
 import { CreditCard, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,7 +54,7 @@ export function BillingCard({ org, memberCount }: BillingCardProps) {
           {seatsLimit !== null && (
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
+                <span className="text-muted-foreground flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5" />
                   Seats used
                 </span>
@@ -98,5 +97,3 @@ export function BillingCard({ org, memberCount }: BillingCardProps) {
     </>
   );
 }
-{% endraw %}
-{%- endif %}

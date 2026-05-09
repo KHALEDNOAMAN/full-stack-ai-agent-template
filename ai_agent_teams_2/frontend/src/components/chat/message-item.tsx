@@ -7,7 +7,7 @@ import { MarkdownContent } from "./markdown-content";
 import { CopyButton } from "./copy-button";
 import { RatingButtons } from "./rating-buttons";
 import { useChatStore } from "@/stores";
-import { User, Bot } from "lucide-react";
+import { Bot, RefreshCw, User } from "lucide-react";
 import Image from "next/image";
 import { useAuthStore } from "@/stores";
 import { getFileUrl } from "@/lib/file-api";
@@ -15,9 +15,10 @@ import { getFileUrl } from "@/lib/file-api";
 interface MessageItemProps {
   message: ChatMessage;
   groupPosition?: "first" | "middle" | "last" | "single";
+  onRegenerate?: () => void;
 }
 
-export function MessageItem({ message, groupPosition }: MessageItemProps) {
+export function MessageItem({ message, groupPosition, onRegenerate }: MessageItemProps) {
   const isUser = message.role === "user";
   const updateMessage = useChatStore((state) => state.updateMessage);
   const { user: authUser } = useAuthStore();
@@ -168,6 +169,17 @@ export function MessageItem({ message, groupPosition }: MessageItemProps) {
                 isUser ? "bg-secondary hover:bg-secondary/80" : "bg-muted hover:bg-muted/80",
               )}
             />
+            {!isUser && onRegenerate && (
+              <button
+                type="button"
+                onClick={onRegenerate}
+                title="Regenerate response"
+                aria-label="Regenerate response"
+                className="bg-muted hover:bg-muted/80 text-foreground/70 hover:text-foreground inline-flex h-6 w-6 items-center justify-center rounded-md transition-colors sm:opacity-0 sm:group-hover:opacity-100"
+              >
+                <RefreshCw className="h-3 w-3" />
+              </button>
+            )}
             {!isUser && (
               <RatingButtons
                 messageId={message.id}

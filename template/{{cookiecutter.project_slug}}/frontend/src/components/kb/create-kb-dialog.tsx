@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +39,11 @@ export function CreateKBDialog({ open, onOpenChange, onCreated }: CreateKBDialog
     e.preventDefault();
     if (!name.trim()) return;
     setIsSubmitting(true);
-    const kb = await createKB({ name: name.trim(), description: description.trim() || undefined, scope });
+    const kb = await createKB({
+      name: name.trim(),
+      description: description.trim() || undefined,
+      scope,
+    });
     setIsSubmitting(false);
     if (kb) {
       setName("");
@@ -103,5 +106,3 @@ export function CreateKBDialog({ open, onOpenChange, onCreated }: CreateKBDialog
     </Dialog>
   );
 }
-{% endraw %}
-{%- endif %}

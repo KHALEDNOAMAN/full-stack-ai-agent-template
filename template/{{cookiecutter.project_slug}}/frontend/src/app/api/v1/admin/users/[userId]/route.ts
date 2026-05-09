@@ -1,4 +1,3 @@
-{%- if cookiecutter.use_jwt %}
 import { NextRequest, NextResponse } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
 import { requireAdmin } from "@/lib/admin-auth";
@@ -71,4 +70,3 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ detail: "Internal server error" }, { status: 500 });
   }
 }
-{%- endif %}

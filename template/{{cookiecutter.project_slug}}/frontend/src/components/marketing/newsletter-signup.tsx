@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_newsletter_signup %}
 "use client";
-{% raw %}
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,7 @@ export function NewsletterSignup() {
 
   if (done) {
     return (
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-center text-sm">
         Thanks for subscribing! We&apos;ll keep you in the loop.
       </p>
     );
@@ -51,7 +50,3 @@ export function NewsletterSignup() {
     </form>
   );
 }
-{% endraw %}
-{%- else %}
-export {};
-{%- endif %}

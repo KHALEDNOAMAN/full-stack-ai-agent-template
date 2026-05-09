@@ -16,6 +16,7 @@ from app.db.models.channel_session import ChannelSession
 from app.db.models.organization import Invitation, Organization, OrganizationMember
 from app.db.models.audit_log import AppAdminAuditLog
 from app.db.models.knowledge_base import KnowledgeBase
+from app.db.models.api_key import ApiKey
 
 __all__ = [
     "User",
@@ -37,4 +38,5 @@ __all__ = [
     "Invitation",
     "AppAdminAuditLog",
     "KnowledgeBase",
+    "ApiKey",
 ]

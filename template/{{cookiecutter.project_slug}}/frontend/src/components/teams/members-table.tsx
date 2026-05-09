@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -68,12 +67,8 @@ export function MembersTable({
                   </Avatar>
                   <div>
                     <p className="text-sm font-medium">{m.full_name ?? m.email}</p>
-                    {m.full_name && (
-                      <p className="text-xs text-muted-foreground">{m.email}</p>
-                    )}
-                    {isSelf && (
-                      <span className="text-xs text-muted-foreground">(you)</span>
-                    )}
+                    {m.full_name && <p className="text-muted-foreground text-xs">{m.email}</p>}
+                    {isSelf && <span className="text-muted-foreground text-xs">(you)</span>}
                   </div>
                 </div>
               </TableCell>
@@ -92,12 +87,10 @@ export function MembersTable({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Badge variant={roleBadgeVariant[m.role]}>
-                    {m.role}
-                  </Badge>
+                  <Badge variant={roleBadgeVariant[m.role]}>{m.role}</Badge>
                 )}
               </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
+              <TableCell className="text-muted-foreground text-sm">
                 {new Date(m.joined_at).toLocaleDateString()}
               </TableCell>
               {canManage && (
@@ -106,7 +99,7 @@ export function MembersTable({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive h-7 w-7 p-0"
                       onClick={() => onRemove(m.user_id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -121,5 +114,3 @@ export function MembersTable({
     </Table>
   );
 }
-{% endraw %}
-{%- endif %}

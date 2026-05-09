@@ -16,7 +16,7 @@ export function useOrganizations() {
       setOrgs(data.items);
       if (!activeOrgId && data.items.length > 0) {
         const personal = data.items.find((o) => o.is_personal) ?? data.items[0];
-        setActiveOrgId(personal.id);
+        if (personal) setActiveOrgId(personal.id);
       }
     } catch {
       toast.error("Failed to load organizations");

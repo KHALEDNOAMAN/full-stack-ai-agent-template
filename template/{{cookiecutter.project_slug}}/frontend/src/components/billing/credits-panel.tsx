@@ -1,10 +1,16 @@
-{%- if cookiecutter.enable_billing and cookiecutter.enable_credits_system and cookiecutter.enable_teams %}
 "use client";
-{% raw %}
+
 import { format } from "date-fns";
 import { Coins, TrendingDown, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCredits, useBilling } from "@/hooks";
@@ -48,9 +54,7 @@ export function CreditsPanel() {
               <Coins className="h-5 w-5" />
               Credits
             </CardTitle>
-            {low && (
-              <Badge variant="destructive">Low balance</Badge>
-            )}
+            {low && <Badge variant="destructive">Low balance</Badge>}
           </div>
           <CardDescription>Credits are consumed by AI operations.</CardDescription>
         </CardHeader>
@@ -58,9 +62,9 @@ export function CreditsPanel() {
           <div className="text-4xl font-bold tabular-nums">
             {balance?.balance.toLocaleString() ?? "—"}
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">credits remaining</p>
+          <p className="text-muted-foreground mt-1 text-sm">credits remaining</p>
           {low && (
-            <p className="mt-2 text-sm text-destructive">
+            <p className="text-destructive mt-2 text-sm">
               Balance is below the alert threshold of {balance?.threshold.toLocaleString()} credits.
             </p>
           )}
@@ -93,7 +97,7 @@ export function CreditsPanel() {
               ))}
             </div>
           ) : !transactions || transactions.items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No transactions yet.</p>
+            <p className="text-muted-foreground text-sm">No transactions yet.</p>
           ) : (
             <div className="divide-y">
               {transactions.items.map((tx) => (
@@ -127,7 +131,3 @@ export function CreditsPanel() {
     </div>
   );
 }
-{% endraw %}
-{%- else %}
-export {};
-{%- endif %}

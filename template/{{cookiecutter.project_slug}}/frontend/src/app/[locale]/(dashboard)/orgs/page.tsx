@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { useEffect, useState } from "react";
 import { Plus, Building2, Settings, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +25,7 @@ export default function OrgsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Organizations</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Manage your organizations and switch between them.
           </p>
         </div>
@@ -38,24 +37,34 @@ export default function OrgsPage() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         {orgs.map((org) => (
-          <Card key={org.id} className="relative cursor-pointer hover:bg-muted/30 transition-colors">
+          <Card
+            key={org.id}
+            className="hover:bg-muted/30 relative cursor-pointer transition-colors"
+          >
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <Building2 className="text-muted-foreground h-4 w-4" />
                   {org.name}
                 </CardTitle>
-                {org.is_personal && <Badge variant="secondary" className="text-[10px]">Personal</Badge>}
+                {org.is_personal && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    Personal
+                  </Badge>
+                )}
               </div>
             </CardHeader>
             <CardContent className="flex items-center justify-between pt-0">
-              <p className="text-xs text-muted-foreground capitalize">{org.subscription_tier}</p>
+              <p className="text-muted-foreground text-xs capitalize">{org.subscription_tier}</p>
               <div className="flex gap-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-7 gap-1 px-2 text-xs"
-                  onClick={() => { switchOrg(org.id); router.push("/dashboard"); }}
+                  onClick={() => {
+                    switchOrg(org.id);
+                    router.push("/dashboard");
+                  }}
                 >
                   <Users className="h-3.5 w-3.5" />
                   Switch
@@ -77,8 +86,8 @@ export default function OrgsPage() {
 
       {orgs.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed py-12 text-center">
-          <Building2 className="h-10 w-10 text-muted-foreground/40" />
-          <p className="text-sm text-muted-foreground">No organizations yet</p>
+          <Building2 className="text-muted-foreground/40 h-10 w-10" />
+          <p className="text-muted-foreground text-sm">No organizations yet</p>
           <Button variant="outline" size="sm" onClick={() => setCreateOpen(true)}>
             Create your first organization
           </Button>
@@ -93,5 +102,3 @@ export default function OrgsPage() {
     </div>
   );
 }
-{% endraw %}
-{%- endif %}

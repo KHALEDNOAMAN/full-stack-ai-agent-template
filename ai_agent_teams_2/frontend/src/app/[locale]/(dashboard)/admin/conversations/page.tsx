@@ -84,8 +84,13 @@ export default function AdminConversationsPage() {
     return (
       <div className="flex h-full flex-col">
         <div className="flex items-center gap-2 border-b p-4">
-          <Button variant="ghost" size="icon" onClick={() => setSelectedConversation(null)}>
-            <ArrowLeft className="h-4 w-4" />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setSelectedConversation(null)}
+            aria-label="Back to conversation list"
+          >
+            <ArrowLeft className="h-4 w-4" aria-hidden />
           </Button>
           <div>
             <h2 className="font-semibold">{selectedConversation.title || t("untitled")}</h2>

@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
@@ -50,14 +49,14 @@ export default function AcceptInvitationPage({ params }: PageProps) {
             <>
               <CheckCircle2 className="h-12 w-12 text-green-500" />
               <p className="text-sm font-medium">You joined the organization!</p>
-              <p className="text-xs text-muted-foreground">Redirecting to your organizations...</p>
+              <p className="text-muted-foreground text-xs">Redirecting to your organizations...</p>
             </>
           )}
           {status === "error" && (
             <>
-              <XCircle className="h-12 w-12 text-destructive" />
+              <XCircle className="text-destructive h-12 w-12" />
               <p className="text-sm font-medium">Failed to accept invitation</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 The invitation may have expired or already been used.
               </p>
               <Button variant="outline" onClick={() => router.push("/dashboard")}>
@@ -67,8 +66,8 @@ export default function AcceptInvitationPage({ params }: PageProps) {
           )}
           {(status === "idle" || status === "loading") && (
             <>
-              {status === "loading" && <Loader2 className="h-8 w-8 animate-spin text-primary" />}
-              <p className="text-sm text-muted-foreground">
+              {status === "loading" && <Loader2 className="text-primary h-8 w-8 animate-spin" />}
+              <p className="text-muted-foreground text-sm">
                 Click below to accept this invitation and join the team.
               </p>
               <Button onClick={handleAccept} disabled={status === "loading"} className="w-full">
@@ -81,5 +80,3 @@ export default function AcceptInvitationPage({ params }: PageProps) {
     </div>
   );
 }
-{% endraw %}
-{%- endif %}

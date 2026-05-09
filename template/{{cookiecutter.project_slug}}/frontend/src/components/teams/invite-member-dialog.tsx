@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -90,5 +89,3 @@ export function InviteMemberDialog({ open, onOpenChange, orgId }: InviteMemberDi
     </Dialog>
   );
 }
-{% endraw %}
-{%- endif %}

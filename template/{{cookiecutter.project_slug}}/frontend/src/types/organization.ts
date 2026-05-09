@@ -1,5 +1,3 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
-{% raw %}
 export type OrgRole = "owner" | "admin" | "member";
 
 export interface Organization {
@@ -62,7 +60,3 @@ export interface InviteMemberInput {
   email: string;
   role: OrgRole;
 }
-{% endraw %}
-{%- else %}
-export {};
-{%- endif %}

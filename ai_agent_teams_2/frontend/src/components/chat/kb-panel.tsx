@@ -37,8 +37,8 @@ export function KBPanel() {
   };
 
   const grouped = kbs.reduce<Record<string, KnowledgeBase[]>>((acc, kb) => {
-    if (!acc[kb.scope]) acc[kb.scope] = [];
-    acc[kb.scope].push(kb);
+    const bucket = acc[kb.scope] ?? (acc[kb.scope] = []);
+    bucket.push(kb);
     return acc;
   }, {});
 
@@ -55,8 +55,14 @@ export function KBPanel() {
           <Database className="text-muted-foreground h-4 w-4" />
           <span className="text-sm font-semibold">Knowledge Bases</span>
         </div>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={close}>
-          <X className="h-3.5 w-3.5" />
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0"
+          onClick={close}
+          aria-label="Close knowledge base panel"
+        >
+          <X className="h-3.5 w-3.5" aria-hidden />
         </Button>
       </div>
 
@@ -83,7 +89,7 @@ export function KBPanel() {
                   {SCOPE_LABELS[scope]}
                 </p>
                 <div className="space-y-0.5">
-                  {grouped[scope].map((kb) => {
+                  {(grouped[scope] ?? []).map((kb) => {
                     const isActive = activeIds.has(kb.id);
                     return (
                       <label

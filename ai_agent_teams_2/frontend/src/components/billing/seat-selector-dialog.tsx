@@ -93,12 +93,25 @@ export function SeatSelectorDialog({
                 className="h-8 w-8 p-0"
                 onClick={() => change(-1)}
                 disabled={seats <= 1}
+                aria-label="Remove a seat"
               >
-                <Minus className="h-3.5 w-3.5" />
+                <Minus className="h-3.5 w-3.5" aria-hidden />
               </Button>
-              <span className="w-8 text-center text-lg font-bold tabular-nums">{seats}</span>
-              <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => change(1)}>
-                <Plus className="h-3.5 w-3.5" />
+              <span
+                className="w-8 text-center text-lg font-bold tabular-nums"
+                aria-live="polite"
+                aria-label={`${seats} seats selected`}
+              >
+                {seats}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={() => change(1)}
+                aria-label="Add a seat"
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden />
               </Button>
             </div>
           </div>

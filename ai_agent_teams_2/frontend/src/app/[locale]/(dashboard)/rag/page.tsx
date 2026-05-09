@@ -13,8 +13,6 @@ import {
   Badge,
   Skeleton,
   Spinner,
-  Label,
-  Switch,
   AlertDialog,
   AlertDialogTrigger,
   AlertDialogContent,
@@ -24,18 +22,6 @@ import {
   AlertDialogFooter,
   AlertDialogAction,
   AlertDialogCancel,
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
 } from "@/components/ui";
 import {
   Database,
@@ -77,6 +63,8 @@ import {
   type SyncSourceCreate,
   type ConnectorInfo,
 } from "@/lib/rag-api";
+import { DragDropOverlay } from "@/components/rag/drag-drop-overlay";
+import { SyncSourceWizard } from "@/components/rag/sync-source-wizard";
 import { apiClient } from "@/lib/api-client";
 
 import { BACKEND_URL } from "@/lib/constants";
@@ -144,14 +132,6 @@ export default function RAGPage() {
   const [syncSourcesLoading, setSyncSourcesLoading] = useState(false);
   const [connectors, setConnectors] = useState<ConnectorInfo[]>([]);
   const [addSourceOpen, setAddSourceOpen] = useState(false);
-  const [addSourceForm, setAddSourceForm] = useState<SyncSourceCreate>({
-    name: "",
-    connector_type: "",
-    collection_name: "",
-    config: {},
-    sync_mode: "full",
-    schedule_minutes: null,
-  });
   const [addSourceSubmitting, setAddSourceSubmitting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [supportedFormats, setSupportedFormats] = useState<string[]>([
@@ -245,24 +225,16 @@ export default function RAGPage() {
     return `${diffDays}d ago`;
   };
 
-  const handleAddSource = async () => {
-    if (!addSourceForm.name || !addSourceForm.connector_type || !addSourceForm.collection_name) {
+  const handleAddSource = async (data: SyncSourceCreate) => {
+    if (!data.name || !data.connector_type || !data.collection_name) {
       toast.error("Name, connector type, and collection are required");
       return;
     }
     setAddSourceSubmitting(true);
     try {
-      await createSyncSource(addSourceForm);
-      toast.success(`Source "${addSourceForm.name}" created`);
+      await createSyncSource(data);
+      toast.success(`Source "${data.name}" created`);
       setAddSourceOpen(false);
-      setAddSourceForm({
-        name: "",
-        connector_type: "",
-        collection_name: "",
-        config: {},
-        sync_mode: "full",
-        schedule_minutes: null,
-      });
       fetchSyncSources();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to create source");
@@ -291,8 +263,6 @@ export default function RAGPage() {
       toast.error("Failed to trigger sync");
     }
   };
-
-  const selectedConnector = connectors.find((c) => c.type === addSourceForm.connector_type);
 
   useEffect(() => {
     fetchCollections();
@@ -370,49 +340,73 @@ export default function RAGPage() {
     }
   };
 
+  const processFiles = useCallback(
+    async (fileList: File[]) => {
+      if (!selected || fileList.length === 0) return;
+      const maxMb = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_MB || "50", 10);
+      const allowedExts = supportedFormats.map((f) => f.toLowerCase());
+      let successCount = 0;
+      let errorCount = 0;
+
+      setUploading(true);
+      for (let i = 0; i < fileList.length; i++) {
+        const file: File | undefined = fileList[i];
+        if (!file) continue;
+        setUploadProgress({ current: i + 1, total: fileList.length, filename: file.name });
+
+        const ext = "." + (file.name.split(".").pop()?.toLowerCase() ?? "");
+        if (allowedExts.length > 0 && !allowedExts.includes(ext)) {
+          toast.error(`${file.name}: Unsupported format (${ext})`);
+          errorCount++;
+          continue;
+        }
+        if (file.size > maxMb * 1024 * 1024) {
+          toast.error(`${file.name}: Too large (max ${maxMb}MB)`);
+          errorCount++;
+          continue;
+        }
+
+        try {
+          await ingestFile(selected, file);
+          successCount++;
+        } catch (err) {
+          toast.error(`${file.name}: ${err instanceof Error ? err.message : "Failed"}`);
+          errorCount++;
+        }
+      }
+
+      setUploading(false);
+      setUploadProgress(null);
+
+      if (successCount > 0) {
+        toast.success(
+          `${successCount} file${successCount > 1 ? "s" : ""} ingested${errorCount > 0 ? `, ${errorCount} failed` : ""}`,
+        );
+      }
+
+      await fetchDocs(selected);
+      await fetchCollections();
+    },
+    [selected, supportedFormats, fetchCollections],
+  );
+
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || !selected) return;
+    if (!files) return;
     e.target.value = "";
-
-    const fileList = Array.from(files);
-    const maxMb = parseInt(process.env.NEXT_PUBLIC_MAX_UPLOAD_SIZE_MB || "50", 10);
-    let successCount = 0;
-    let errorCount = 0;
-
-    setUploading(true);
-    for (let i = 0; i < fileList.length; i++) {
-      const file: File | undefined = fileList[i];
-      if (!file) continue;
-      setUploadProgress({ current: i + 1, total: fileList.length, filename: file.name });
-
-      if (file.size > maxMb * 1024 * 1024) {
-        toast.error(`${file.name}: Too large (max ${maxMb}MB)`);
-        errorCount++;
-        continue;
-      }
-
-      try {
-        await ingestFile(selected, file);
-        successCount++;
-      } catch (err) {
-        toast.error(`${file.name}: ${err instanceof Error ? err.message : "Failed"}`);
-        errorCount++;
-      }
-    }
-
-    setUploading(false);
-    setUploadProgress(null);
-
-    if (successCount > 0) {
-      toast.success(
-        `${successCount} file${successCount > 1 ? "s" : ""} ingested${errorCount > 0 ? `, ${errorCount} failed` : ""}`,
-      );
-    }
-
-    await fetchDocs(selected);
-    await fetchCollections();
+    await processFiles(Array.from(files));
   };
+
+  const handleDrop = useCallback(
+    (files: File[]) => {
+      if (!selected) {
+        toast.error("Select a collection before dropping files");
+        return;
+      }
+      processFiles(files);
+    },
+    [selected, processFiles],
+  );
 
   const handleSearch = async () => {
     if (!searchQuery.trim() || !selected) return;
@@ -436,6 +430,26 @@ export default function RAGPage() {
 
   return (
     <div className="-m-3 flex min-h-0 flex-1 sm:-m-6">
+      <DragDropOverlay
+        onDrop={handleDrop}
+        disabled={!selected || uploading}
+        title={selected ? `Drop files into "${selected}"` : "Drop files to upload"}
+        description={
+          selected
+            ? "Files will be ingested into the active collection"
+            : "Select a collection first"
+        }
+        acceptedFormats={supportedFormats}
+      />
+      <SyncSourceWizard
+        open={addSourceOpen}
+        onOpenChange={setAddSourceOpen}
+        connectors={connectors}
+        collections={collections.map((c) => ({ name: c.name }))}
+        defaultCollection={selected}
+        onSubmit={handleAddSource}
+        submitting={addSourceSubmitting}
+      />
       {/* Sidebar — collections */}
       {sidebarOpen && (
         <div className="flex w-52 shrink-0 flex-col border-r lg:w-64">
@@ -846,229 +860,16 @@ export default function RAGPage() {
                   <div>
                     <div className="mb-3 flex items-center justify-between">
                       <h3 className="text-sm font-semibold">Sync Sources</h3>
-                      <Dialog
-                        open={addSourceOpen}
-                        onOpenChange={(open) => {
-                          setAddSourceOpen(open);
-                          if (open) {
-                            setAddSourceForm({
-                              name: "",
-                              connector_type: "",
-                              collection_name: selected || "",
-                              config: {},
-                              sync_mode: "full",
-                              schedule_minutes: null,
-                            });
-                            if (connectors.length === 0) fetchConnectors();
-                          }
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setAddSourceOpen(true);
+                          if (connectors.length === 0) fetchConnectors();
                         }}
                       >
-                        <DialogTrigger asChild>
-                          <Button size="sm" variant="outline">
-                            <Plus className="mr-1 h-3.5 w-3.5" /> Add Source
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
-                          <DialogHeader>
-                            <DialogTitle>Add Sync Source</DialogTitle>
-                            <DialogDescription>
-                              Configure a new data source for automatic synchronization.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4 py-2">
-                            <div className="space-y-1.5">
-                              <Label htmlFor="source-name">Source Name</Label>
-                              <Input
-                                id="source-name"
-                                placeholder="e.g. My S3 Bucket"
-                                value={addSourceForm.name}
-                                onChange={(e) =>
-                                  setAddSourceForm((f) => ({ ...f, name: e.target.value }))
-                                }
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <Label>Connector Type</Label>
-                              <Select
-                                value={addSourceForm.connector_type}
-                                onValueChange={(val) =>
-                                  setAddSourceForm((f) => ({
-                                    ...f,
-                                    connector_type: val,
-                                    config: {},
-                                  }))
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select connector..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {connectors
-                                    .filter((c) => c.enabled)
-                                    .map((c) => (
-                                      <SelectItem key={c.type} value={c.type}>
-                                        {c.name}
-                                      </SelectItem>
-                                    ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            {/* Dynamic config fields */}
-                            {selectedConnector &&
-                              Object.keys(selectedConnector.config_schema).length > 0 && (
-                                <div className="space-y-3 rounded-lg border p-3">
-                                  <p className="text-muted-foreground text-xs font-medium">
-                                    Connector Configuration
-                                  </p>
-                                  {Object.entries(selectedConnector.config_schema).map(
-                                    ([key, field]) => (
-                                      <div key={key} className="space-y-1">
-                                        <Label htmlFor={`cfg-${key}`} className="text-xs">
-                                          {field.label}
-                                          {field.required && (
-                                            <span className="text-destructive ml-0.5">*</span>
-                                          )}
-                                        </Label>
-                                        {field.type === "boolean" ? (
-                                          <div className="flex items-center gap-2">
-                                            <Switch
-                                              id={`cfg-${key}`}
-                                              checked={!!addSourceForm.config[key]}
-                                              onCheckedChange={(val) =>
-                                                setAddSourceForm((f) => ({
-                                                  ...f,
-                                                  config: { ...f.config, [key]: val },
-                                                }))
-                                              }
-                                            />
-                                            {field.help && (
-                                              <span className="text-muted-foreground text-[10px]">
-                                                {field.help}
-                                              </span>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <>
-                                            <Input
-                                              id={`cfg-${key}`}
-                                              type={
-                                                field.secret
-                                                  ? "password"
-                                                  : field.type === "integer"
-                                                    ? "number"
-                                                    : "text"
-                                              }
-                                              placeholder={
-                                                field.default !== undefined
-                                                  ? String(field.default)
-                                                  : ""
-                                              }
-                                              value={
-                                                addSourceForm.config[key] !== undefined
-                                                  ? String(addSourceForm.config[key])
-                                                  : ""
-                                              }
-                                              onChange={(e) => {
-                                                const val =
-                                                  field.type === "integer"
-                                                    ? e.target.value
-                                                      ? Number(e.target.value)
-                                                      : ""
-                                                    : e.target.value;
-                                                setAddSourceForm((f) => ({
-                                                  ...f,
-                                                  config: { ...f.config, [key]: val },
-                                                }));
-                                              }}
-                                              className="h-8 text-xs"
-                                            />
-                                            {field.help && (
-                                              <p className="text-muted-foreground text-[10px]">
-                                                {field.help}
-                                              </p>
-                                            )}
-                                          </>
-                                        )}
-                                      </div>
-                                    ),
-                                  )}
-                                </div>
-                              )}
-
-                            <div className="space-y-1.5">
-                              <Label>Target Collection</Label>
-                              <Select
-                                value={addSourceForm.collection_name}
-                                onValueChange={(val) =>
-                                  setAddSourceForm((f) => ({ ...f, collection_name: val }))
-                                }
-                              >
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select collection..." />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {collections.map((c) => (
-                                    <SelectItem key={c.name} value={c.name}>
-                                      {c.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="space-y-1.5">
-                                <Label>Sync Mode</Label>
-                                <Select
-                                  value={addSourceForm.sync_mode || "full"}
-                                  onValueChange={(val) =>
-                                    setAddSourceForm((f) => ({ ...f, sync_mode: val }))
-                                  }
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="full">Full</SelectItem>
-                                    <SelectItem value="new_only">New Only</SelectItem>
-                                    <SelectItem value="update_only">Update Only</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-1.5">
-                                <Label htmlFor="schedule-min">Schedule (minutes)</Label>
-                                <Input
-                                  id="schedule-min"
-                                  type="number"
-                                  min={0}
-                                  placeholder="0 = manual"
-                                  value={addSourceForm.schedule_minutes ?? ""}
-                                  onChange={(e) =>
-                                    setAddSourceForm((f) => ({
-                                      ...f,
-                                      schedule_minutes: e.target.value
-                                        ? Number(e.target.value)
-                                        : null,
-                                    }))
-                                  }
-                                  className="h-8"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button variant="outline" onClick={() => setAddSourceOpen(false)}>
-                              Cancel
-                            </Button>
-                            <Button onClick={handleAddSource} disabled={addSourceSubmitting}>
-                              {addSourceSubmitting ? (
-                                <Spinner className="mr-2 h-3.5 w-3.5" />
-                              ) : null}
-                              Create Source
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                        <Plus className="mr-1 h-3.5 w-3.5" /> Add Source
+                      </Button>
                     </div>
 
                     {syncSourcesLoading ? (

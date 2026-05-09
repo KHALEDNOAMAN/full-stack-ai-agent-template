@@ -1,5 +1,3 @@
-{%- if cookiecutter.enable_billing and cookiecutter.enable_teams %}
-{% raw %}
 export interface CheckoutSessionResponse {
   url: string;
   session_id?: string;
@@ -124,7 +122,3 @@ export interface PaymentMethodRead {
 export interface UpdateSeatsInput {
   seats_quantity: number;
 }
-{% endraw %}
-{%- else %}
-export {};
-{%- endif %}

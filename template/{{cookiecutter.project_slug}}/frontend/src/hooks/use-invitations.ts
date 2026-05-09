@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
@@ -35,7 +34,7 @@ export function useInvitations(orgId: string) {
         return null;
       }
     },
-    [orgId]
+    [orgId],
   );
 
   const revokeInvitation = useCallback(async (token: string) => {
@@ -59,5 +58,3 @@ export function useInvitations(orgId: string) {
 
   return { invitations, isLoading, fetchInvitations, invite, revokeInvitation, acceptInvitation };
 }
-{% endraw %}
-{%- endif %}

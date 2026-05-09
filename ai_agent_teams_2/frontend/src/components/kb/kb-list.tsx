@@ -22,8 +22,8 @@ const scopeColors: Record<string, string> = {
 
 export function KBList({ kbs, onToggle, onDelete, canDelete = true }: KBListProps) {
   const grouped = kbs.reduce<Record<string, KnowledgeBase[]>>((acc, kb) => {
-    if (!acc[kb.scope]) acc[kb.scope] = [];
-    acc[kb.scope].push(kb);
+    const bucket = acc[kb.scope] ?? (acc[kb.scope] = []);
+    bucket.push(kb);
     return acc;
   }, {});
 
@@ -49,7 +49,7 @@ export function KBList({ kbs, onToggle, onDelete, canDelete = true }: KBListProp
             {label}
           </h3>
           <div className="grid gap-3 sm:grid-cols-2">
-            {grouped[key].map((kb) => (
+            {(grouped[key] ?? []).map((kb) => (
               <Card key={kb.id} className="relative">
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between gap-2">

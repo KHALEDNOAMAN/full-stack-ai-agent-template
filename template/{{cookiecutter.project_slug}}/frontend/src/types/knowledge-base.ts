@@ -1,5 +1,3 @@
-{%- if cookiecutter.enable_teams and cookiecutter.enable_rag and cookiecutter.use_jwt %}
-{% raw %}
 export type KBScope = "personal" | "organization" | "app";
 
 export interface KnowledgeBase {
@@ -24,7 +22,3 @@ export interface CreateKnowledgeBaseInput {
   description?: string;
   scope: KBScope;
 }
-{% endraw %}
-{%- else %}
-export {};
-{%- endif %}

@@ -3,8 +3,6 @@
  */
 
 export type MessageRole = "user" | "assistant" | "system";
-
-{%- if cookiecutter.use_jwt %}
 /** Rating values for message feedback. */
 export enum RatingValue {
   LIKE = 1,
@@ -12,7 +10,6 @@ export enum RatingValue {
 }
 
 export type UserRating = RatingValue.LIKE | RatingValue.DISLIKE | null;
-{%- endif %}
 
 export interface ChatMessage {
   id: string;
@@ -25,7 +22,6 @@ export interface ChatMessage {
   groupId?: string;
   /** IDs of attached files (images, documents) */
   fileIds?: string[];
-{%- if cookiecutter.use_jwt %}
   /** Conversation ID for this message */
   conversationId?: string;
   /** True if message ID is a temporary nanoid, not yet replaced by server ID */
@@ -34,7 +30,6 @@ export interface ChatMessage {
   user_rating?: UserRating;
   /** Aggregate rating counts */
   rating_count?: { likes: number; dislikes: number } | null;
-{%- endif %}
 }
 
 export interface ToolCall {

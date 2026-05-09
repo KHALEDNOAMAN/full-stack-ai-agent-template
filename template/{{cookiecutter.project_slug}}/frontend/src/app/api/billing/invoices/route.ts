@@ -1,5 +1,4 @@
-{%- if cookiecutter.enable_billing and cookiecutter.enable_teams %}
-{% raw %}import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
 
 export async function GET(request: NextRequest) {
@@ -17,5 +16,4 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ detail: error.message }, { status: error.status });
     return NextResponse.json({ detail: "Internal server error" }, { status: 500 });
   }
-}{% endraw %}
-{%- endif %}
+}

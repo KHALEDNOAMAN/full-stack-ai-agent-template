@@ -1,5 +1,4 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
-{% raw %}import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
 
 interface RouteParams {
@@ -20,5 +19,4 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ detail: error.message }, { status: error.status });
     return NextResponse.json({ detail: "Internal server error" }, { status: 500 });
   }
-}{% endraw %}
-{%- endif %}
+}

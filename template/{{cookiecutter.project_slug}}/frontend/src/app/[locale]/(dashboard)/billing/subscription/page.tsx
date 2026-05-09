@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_billing and cookiecutter.enable_teams %}
 "use client";
-{% raw %}
+
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -25,7 +24,7 @@ export default function SubscriptionPage() {
     <div className="mx-auto max-w-3xl space-y-8 p-6">
       <div>
         <h1 className="text-2xl font-bold">Subscription</h1>
-        <p className="text-sm text-muted-foreground">Manage your plan and billing settings.</p>
+        <p className="text-muted-foreground text-sm">Manage your plan and billing settings.</p>
       </div>
 
       <SubscriptionPanel />
@@ -44,7 +43,7 @@ export default function SubscriptionPage() {
                   <CardDescription>{plan.description ?? ""}</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-1 flex-col justify-between gap-4">
-                  <div className="space-y-1 text-sm text-muted-foreground">
+                  <div className="text-muted-foreground space-y-1 text-sm">
                     {plan.prices
                       .filter((p) => p.is_active)
                       .map((price) => (
@@ -90,9 +89,3 @@ export default function SubscriptionPage() {
     </div>
   );
 }
-{% endraw %}
-{%- else %}
-export default function SubscriptionPage() {
-  return null;
-}
-{%- endif %}

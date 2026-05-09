@@ -6,11 +6,7 @@ import { useWebSocket } from "./use-websocket";
 import { useChatStore, useAuthStore } from "@/stores";
 import type { ChatMessage, ToolCall, WSEvent, PendingApproval, Decision } from "@/types";
 import { WS_URL } from "@/lib/constants";
-{%- if cookiecutter.use_database %}
 import { useConversationStore } from "@/stores";
-{%- endif %}
-
-{%- if cookiecutter.use_database %}
 interface UseChatOptions {
   conversationId?: string | null;
   onConversationCreated?: (conversationId: string) => void;
@@ -18,18 +14,10 @@ interface UseChatOptions {
 
 export function useChat(options: UseChatOptions = {}) {
   const { conversationId, onConversationCreated } = options;
-  const { setCurrentConversationId, currentConversationId: currentConversationIdFromStore } = useConversationStore();
-{%- else %}
-export function useChat() {
-{%- endif %}
-  const {
-    messages,
-    addMessage,
-    updateMessage,
-    addToolCall,
-    updateToolCall,
-    clearMessages,
-  } = useChatStore();
+  const { setCurrentConversationId, currentConversationId: currentConversationIdFromStore } =
+    useConversationStore();
+  const { messages, addMessage, updateMessage, addToolCall, updateToolCall, clearMessages } =
+    useChatStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentMessageId, setCurrentMessageId] = useState<string | null>(null);
@@ -54,10 +42,9 @@ export function useChat() {
         }
 
         const newMsgId = nanoid();
-{%- if cookiecutter.use_database %}
         // Use current conversationId from store to avoid closure issues
-        const effectiveConversationId = currentConversationIdFromStore || conversationId || undefined;
-{%- endif %}
+        const effectiveConversationId =
+          currentConversationIdFromStore || conversationId || undefined;
         addMessage({
           id: newMsgId,
           role: "assistant",
@@ -66,17 +53,14 @@ export function useChat() {
           isStreaming: true,
           toolCalls: [],
           groupId: currentGroupIdRef.current || undefined,
-{%- if cookiecutter.use_database %}
           conversationId: effectiveConversationId,
           isTemporaryId: true,
-{%- endif %}
         });
         setCurrentMessageId(newMsgId);
         return newMsgId;
       };
 
       switch (wsEvent.type) {
-{%- if cookiecutter.use_database %}
         case "conversation_created": {
           // Handle new conversation created by backend
           const { conversation_id } = wsEvent.data as { conversation_id: string };
@@ -85,7 +69,7 @@ export function useChat() {
           const { updateMessagesWhere } = useChatStore.getState();
           updateMessagesWhere(
             (msg) => !msg.conversationId,
-            (msg) => ({ ...msg, conversationId: conversation_id })
+            (msg) => ({ ...msg, conversationId: conversation_id }),
           );
           onConversationCreated?.(conversation_id);
           break;
@@ -105,18 +89,19 @@ export function useChat() {
             // Fallback: find the last assistant message with a temp ID
             // This handles cases where currentMessageId was already cleared
             const messages = useChatStore.getState().messages;
-            const lastTemp = [...messages].reverse().find(
-              msg => msg.role === "assistant" && !!msg.isTemporaryId
-            );
+            const lastTemp = [...messages]
+              .reverse()
+              .find((msg) => msg.role === "assistant" && !!msg.isTemporaryId);
             if (lastTemp) {
               updateMessage(lastTemp.id, (msg) => ({
-                ...msg, id: message_id, isTemporaryId: false
+                ...msg,
+                id: message_id,
+                isTemporaryId: false,
               }));
             }
           }
           break;
         }
-{%- endif %}
 
         case "model_request_start": {
           // PydanticAI/LangChain - create message immediately
@@ -230,7 +215,7 @@ export function useChat() {
             updateMessage(currentMessageId, (msg) => {
               const toolCalls = msg.toolCalls || [];
               const lastToolCall = toolCalls.find(
-                (tc) => tc.name === tool_name && tc.status === "running"
+                (tc) => tc.name === tool_name && tc.status === "running",
               );
               if (lastToolCall) {
                 return {
@@ -238,7 +223,7 @@ export function useChat() {
                   toolCalls: toolCalls.map((tc) =>
                     tc.id === lastToolCall.id
                       ? { ...tc, result: tool_result, status: "completed" as const }
-                      : tc
+                      : tc,
                   ),
                 };
               }
@@ -363,11 +348,17 @@ export function useChat() {
         }
       }
     },
-{%- if cookiecutter.use_database %}
-    [currentMessageId, addMessage, updateMessage, addToolCall, updateToolCall, setCurrentConversationId, onConversationCreated, currentConversationIdFromStore, conversationId]
-{%- else %}
-    [currentMessageId, addMessage, updateMessage, addToolCall, updateToolCall]
-{%- endif %}
+    [
+      currentMessageId,
+      addMessage,
+      updateMessage,
+      addToolCall,
+      updateToolCall,
+      setCurrentConversationId,
+      onConversationCreated,
+      currentConversationIdFromStore,
+      conversationId,
+    ],
   );
 
   // Access token lives in memory only (populated by login/refresh responses).
@@ -394,13 +385,10 @@ export function useChat() {
         role: "user",
         content,
         timestamp: new Date(),
-{%- if cookiecutter.use_database %}
         conversationId: conversationId || undefined,
-{%- endif %}
         fileIds,
       });
       setIsProcessing(true);
-{%- if cookiecutter.use_database %}
       const payload: Record<string, unknown> = {
         message: content,
         conversation_id: conversationId || null,
@@ -408,18 +396,8 @@ export function useChat() {
       if (fileIds?.length) payload.file_ids = fileIds;
       if (modelRef.current) payload.model = modelRef.current;
       sendMessage(payload);
-{%- else %}
-      const payload: Record<string, unknown> = { message: content };
-      if (fileIds?.length) payload.file_ids = fileIds;
-      if (modelRef.current) payload.model = modelRef.current;
-      sendMessage(payload);
-{%- endif %}
     },
-{%- if cookiecutter.use_database %}
-    [addMessage, sendMessage, conversationId]
-{%- else %}
-    [addMessage, sendMessage]
-{%- endif %}
+    [addMessage, sendMessage, conversationId],
   );
 
   const sendChatMessage = useCallback(
@@ -431,20 +409,14 @@ export function useChat() {
           role: "user",
           content,
           timestamp: new Date(),
-{%- if cookiecutter.use_database %}
           conversationId: conversationId || undefined,
-{%- endif %}
-          fileIds
+          fileIds,
         });
         return;
       }
       doSend(content, fileIds);
     },
-{%- if cookiecutter.use_database %}
-    [isProcessing, doSend, addMessage, conversationId]
-{%- else %}
-    [isProcessing, doSend, addMessage]
-{%- endif %}
+    [isProcessing, doSend, addMessage, conversationId],
   );
 
   // Human-in-the-Loop: send resume message with user decisions
@@ -468,7 +440,7 @@ export function useChat() {
           ...msg,
           content: msg.content.replace(
             /\n\n⏸️ Waiting for approval:.*$/,
-            `\n\n✅ Decisions: ${summaryParts.join(", ")}`
+            `\n\n✅ Decisions: ${summaryParts.join(", ")}`,
           ),
         }));
       }
@@ -487,7 +459,7 @@ export function useChat() {
         }),
       });
     },
-    [currentMessageId, updateMessage, sendMessage]
+    [currentMessageId, updateMessage, sendMessage],
   );
 
   // Drain message queue when processing finishes
@@ -508,7 +480,9 @@ export function useChat() {
     disconnect,
     sendMessage: sendChatMessage,
     clearMessages,
-    setModel: (model: string | null) => { modelRef.current = model; },
+    setModel: (model: string | null) => {
+      modelRef.current = model;
+    },
     // Human-in-the-Loop support
     pendingApproval,
     sendResumeDecisions,

@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Organization } from "@/types";
@@ -49,8 +48,6 @@ export const useOrgStore = create<OrgState>()(
       partialize: (state) => ({
         activeOrgId: state.activeOrgId,
       }),
-    }
-  )
+    },
+  ),
 );
-{% endraw %}
-{%- endif %}

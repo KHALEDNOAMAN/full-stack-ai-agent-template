@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_billing and cookiecutter.enable_teams %}
 "use client";
-{% raw %}
+
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
@@ -84,21 +83,32 @@ export function useSubscription() {
     }
   }, [fetchSubscription]);
 
-  const updateSeats = useCallback(async (seats: number) => {
-    try {
-      await apiClient.patch("/billing/me/subscription", { seats_quantity: seats });
-      toast.success("Seats updated.");
-      await fetchSubscription();
-    } catch {
-      toast.error("Failed to update seats");
-    }
-  }, [fetchSubscription]);
+  const updateSeats = useCallback(
+    async (seats: number) => {
+      try {
+        await apiClient.patch("/billing/me/subscription", { seats_quantity: seats });
+        toast.success("Seats updated.");
+        await fetchSubscription();
+      } catch {
+        toast.error("Failed to update seats");
+      }
+    },
+    [fetchSubscription],
+  );
 
   useEffect(() => {
     fetchSubscription();
   }, [fetchSubscription]);
 
-  return { subscription, isLoading, error, fetchSubscription, cancelSubscription, reactivateSubscription, updateSeats };
+  return {
+    subscription,
+    isLoading,
+    error,
+    fetchSubscription,
+    cancelSubscription,
+    reactivateSubscription,
+    updateSeats,
+  };
 }
 
 export function useInvoices() {
@@ -146,7 +156,7 @@ export function useCredits() {
     setTxLoading(true);
     try {
       const data = await apiClient.get<CreditTransactionList>(
-        `/billing/me/credits/transactions?skip=${skip}&limit=${limit}`
+        `/billing/me/credits/transactions?skip=${skip}&limit=${limit}`,
       );
       setTransactions(data);
     } catch {
@@ -178,5 +188,3 @@ export function usePlans() {
 
   return { plans, isLoading };
 }
-{% endraw %}
-{%- endif %}

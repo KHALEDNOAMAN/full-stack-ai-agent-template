@@ -28,3 +28,11 @@ export function getLocaleLabel(locale: Locale): string {
   };
   return labels[locale];
 }
+
+export function getLocaleFlag(locale: Locale): string {
+  const flags: Record<Locale, string> = {
+    en: "🇬🇧",
+    pl: "🇵🇱",
+  };
+  return flags[locale];
+}

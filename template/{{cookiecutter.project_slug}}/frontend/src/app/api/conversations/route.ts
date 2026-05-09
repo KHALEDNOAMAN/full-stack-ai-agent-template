@@ -1,5 +1,4 @@
-{%- if cookiecutter.use_database %}
-{% raw %}import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { backendFetch, BackendApiError } from "@/lib/server-api";
 
 export async function GET(request: NextRequest) {
@@ -25,13 +24,10 @@ export async function GET(request: NextRequest) {
     if (error instanceof BackendApiError) {
       return NextResponse.json(
         { detail: error.message || "Failed to fetch conversations" },
-        { status: error.status }
+        { status: error.status },
       );
     }
-    return NextResponse.json(
-      { detail: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ detail: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -59,13 +55,9 @@ export async function POST(request: NextRequest) {
     if (error instanceof BackendApiError) {
       return NextResponse.json(
         { detail: error.message || "Failed to create conversation" },
-        { status: error.status }
+        { status: error.status },
       );
     }
-    return NextResponse.json(
-      { detail: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ detail: "Internal server error" }, { status: 500 });
   }
-}{% endraw %}
-{%- endif %}
+}

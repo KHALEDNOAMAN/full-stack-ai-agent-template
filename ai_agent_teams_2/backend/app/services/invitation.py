@@ -17,7 +17,7 @@ from app.core.exceptions import (
     NotFoundError,
 )
 from app.db.models.organization import InvitationStatus, OrgRole
-from app.repositories import invitation_repo, member_repo, organization_repo
+from app.repositories import invitation_repo, member_repo, organization_repo, user_repo
 
 logger = logging.getLogger(__name__)
 
@@ -57,8 +57,6 @@ class InvitationService:
         normalized_email = email.lower()
 
         # Check if already a member (by email via user lookup)
-        from app.repositories import user_repo
-
         existing_user = await user_repo.get_by_email(self.db, normalized_email)
         if existing_user:
             existing_membership = await member_repo.get(
@@ -163,8 +161,6 @@ class InvitationService:
             raise BadRequestError(message="Invitation has expired")
 
         # Check the accepting user's email matches (optional guard — logged only)
-        from app.repositories import user_repo
-
         accepting_user = await user_repo.get_by_id(self.db, accepting_user_id)
         if accepting_user and accepting_user.email.lower() != invite.email:
             logger.warning(
@@ -230,8 +226,6 @@ class InvitationService:
             self.db, organization_id=invite.organization_id, user_id=requester_id
         )
         # Allow the invitee (non-member) to cancel their own invite, or admin/owner of the org
-        from app.repositories import user_repo
-
         accepting_user = await user_repo.get_by_id(self.db, requester_id)
         is_own_invite = accepting_user and accepting_user.email.lower() == invite.email
 

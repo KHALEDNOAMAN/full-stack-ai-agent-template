@@ -15,7 +15,7 @@ export interface AdminUserRead {
 }
 
 interface AdminUserList {
-  items: AdminAdminUserRead[];
+  items: AdminUserRead[];
   total: number;
 }
 

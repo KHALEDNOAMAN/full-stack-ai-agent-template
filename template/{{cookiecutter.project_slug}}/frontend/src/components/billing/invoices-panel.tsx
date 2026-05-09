@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_billing and cookiecutter.enable_teams %}
 "use client";
-{% raw %}
+
 import { format } from "date-fns";
 import { Download, ExternalLink, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -62,7 +61,7 @@ export function InvoicesPanel() {
       </CardHeader>
       <CardContent>
         {invoices.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">No invoices yet.</p>
+          <p className="text-muted-foreground py-6 text-center text-sm">No invoices yet.</p>
         ) : (
           <div className="divide-y">
             {invoices.map((inv) => (
@@ -74,7 +73,7 @@ export function InvoicesPanel() {
                       {statusLabel[inv.status]}
                     </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     {format(new Date(inv.period_start), "MMM d")}–
                     {format(new Date(inv.period_end), "MMM d, yyyy")}
                   </p>
@@ -85,12 +84,7 @@ export function InvoicesPanel() {
                   </p>
                   <div className="mt-1 flex items-center justify-end gap-1">
                     {inv.invoice_pdf && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 gap-1 px-2 text-xs"
-                        asChild
-                      >
+                      <Button variant="ghost" size="sm" className="h-6 gap-1 px-2 text-xs" asChild>
                         <a href={inv.invoice_pdf} target="_blank" rel="noopener noreferrer">
                           <Download className="h-3 w-3" />
                           PDF
@@ -98,12 +92,7 @@ export function InvoicesPanel() {
                       </Button>
                     )}
                     {inv.hosted_invoice_url && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-6 gap-1 px-2 text-xs"
-                        asChild
-                      >
+                      <Button variant="ghost" size="sm" className="h-6 gap-1 px-2 text-xs" asChild>
                         <a href={inv.hosted_invoice_url} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="h-3 w-3" />
                           View
@@ -120,7 +109,3 @@ export function InvoicesPanel() {
     </Card>
   );
 }
-{% endraw %}
-{%- else %}
-export {};
-{%- endif %}

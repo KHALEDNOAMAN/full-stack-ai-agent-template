@@ -317,8 +317,9 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
           size="sm"
           className="mb-4 h-10 w-10 p-0"
           onClick={() => setIsCollapsed(false)}
+          aria-label="Expand conversations sidebar"
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="h-4 w-4" aria-hidden />
         </Button>
         <Button
           variant="ghost"
@@ -326,8 +327,9 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
           className="h-10 w-10 p-0"
           onClick={startNewChat}
           title="New Chat"
+          aria-label="New chat"
         >
-          <MessageSquarePlus className="h-4 w-4" />
+          <MessageSquarePlus className="h-4 w-4" aria-hidden />
         </Button>
       </div>
     );
@@ -345,8 +347,9 @@ export function ConversationSidebar({ className }: ConversationSidebarProps) {
             size="sm"
             className="h-8 w-8 p-0"
             onClick={() => setIsCollapsed(true)}
+            aria-label="Collapse conversations sidebar"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" aria-hidden />
           </Button>
         </div>
         <ConversationList {...listProps} />

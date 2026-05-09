@@ -1,10 +1,11 @@
 """User database model."""
 
 import uuid
+from datetime import datetime
 from enum import StrEnum
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, String
+from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -39,6 +40,9 @@ class User(Base, TimestampMixin):
     role: Mapped[str] = mapped_column(String(50), default=UserRole.USER.value, nullable=False)
     is_app_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    onboarding_completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # Relationship to sessions
     sessions: Mapped[list["Session"]] = relationship(

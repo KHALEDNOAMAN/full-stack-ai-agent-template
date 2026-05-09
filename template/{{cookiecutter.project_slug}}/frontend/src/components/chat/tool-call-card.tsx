@@ -35,25 +35,23 @@ function DateTimeResult({ result }: { result: string }) {
     <div className="flex items-center gap-4 py-2">
       {dateMatch && (
         <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
+          <Calendar className="text-primary h-5 w-5" />
           <div>
-            <p className="text-xs text-muted-foreground">Date</p>
+            <p className="text-muted-foreground text-xs">Date</p>
             <p className="text-sm font-semibold">{dateMatch[1]}</p>
           </div>
         </div>
       )}
       {timeMatch && (
         <div className="flex items-center gap-2">
-          <Clock className="h-5 w-5 text-primary" />
+          <Clock className="text-primary h-5 w-5" />
           <div>
-            <p className="text-xs text-muted-foreground">Time</p>
+            <p className="text-muted-foreground text-xs">Time</p>
             <p className="text-sm font-semibold">{timeMatch[1]}</p>
           </div>
         </div>
       )}
-      {!dateMatch && !timeMatch && (
-        <p className="text-sm">{result}</p>
-      )}
+      {!dateMatch && !timeMatch && <p className="text-sm">{result}</p>}
     </div>
   );
 }
@@ -71,7 +69,8 @@ interface RAGResultItem {
 function parseRAGResults(result: string): RAGResultItem[] {
   const items: RAGResultItem[] = [];
   // Match: [1] Source: filename, page X, chunk Y [collection] (score: 0.xxx)\ncontent
-  const pattern = /\[(\d+)\]\s*Source:\s*([^,\n]+?)(?:,\s*page\s*(\d+))?(?:,\s*chunk\s*(\d+))?(?:\s*\[([^\]]+)\])?\s*\(score:\s*([\d.]+)\)\n([\s\S]*?)(?=\n\[\d+\]|$)/g;
+  const pattern =
+    /\[(\d+)\]\s*Source:\s*([^,\n]+?)(?:,\s*page\s*(\d+))?(?:,\s*chunk\s*(\d+))?(?:\s*\[([^\]]+)\])?\s*\(score:\s*([\d.]+)\)\n([\s\S]*?)(?=\n\[\d+\]|$)/g;
   let match;
   while ((match = pattern.exec(result)) !== null) {
     items.push({
@@ -94,7 +93,7 @@ function RAGSearchResults({ result }: { result: string }) {
   if (items.length === 0) {
     if (result.includes("No relevant documents")) {
       return (
-        <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 py-2 text-sm">
           <Search className="h-4 w-4" />
           No relevant documents found
         </div>
@@ -105,7 +104,7 @@ function RAGSearchResults({ result }: { result: string }) {
 
   return (
     <div className="space-y-2 py-1">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex items-center gap-2 text-xs">
         <Search className="h-3.5 w-3.5" />
         Found {items.length} result{items.length !== 1 ? "s" : ""}
       </div>
@@ -114,75 +113,77 @@ function RAGSearchResults({ result }: { result: string }) {
           <Card
             key={item.index}
             className={cn(
-              "min-w-[220px] max-w-[280px] shrink-0 cursor-pointer transition-all",
-              expandedIdx === item.index ? "ring-2 ring-primary" : "hover:bg-accent"
+              "max-w-[280px] min-w-[220px] shrink-0 cursor-pointer transition-all",
+              expandedIdx === item.index ? "ring-primary ring-2" : "hover:bg-accent",
             )}
             onClick={() => setExpandedIdx(expandedIdx === item.index ? null : item.index)}
           >
             <CardContent className="p-3">
               <div className="mb-1.5 flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="text-xs font-medium truncate">{item.source}</span>
+                <FileText className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+                <span className="truncate text-xs font-medium">{item.source}</span>
               </div>
-              <div className="flex flex-wrap gap-1 mb-1.5">
-                <Badge variant="secondary" className="text-[10px] px-1 py-0">
+              <div className="mb-1.5 flex flex-wrap gap-1">
+                <Badge variant="secondary" className="px-1 py-0 text-[10px]">
                   [{item.index}]
                 </Badge>
                 {item.page && (
-                  <Badge variant="outline" className="text-[10px] px-1 py-0">
+                  <Badge variant="outline" className="px-1 py-0 text-[10px]">
                     p.{item.page}
                   </Badge>
                 )}
                 {item.collection && (
-                  <Badge variant="outline" className="text-[10px] px-1 py-0">
+                  <Badge variant="outline" className="px-1 py-0 text-[10px]">
                     {item.collection}
                   </Badge>
                 )}
                 <Badge
                   variant="outline"
-                  className={cn("text-[10px] px-1 py-0 ml-auto", {
+                  className={cn("ml-auto px-1 py-0 text-[10px]", {
                     "text-green-600": parseFloat(item.score) >= 0.7,
-                    "text-yellow-600": parseFloat(item.score) >= 0.4 && parseFloat(item.score) < 0.7,
+                    "text-yellow-600":
+                      parseFloat(item.score) >= 0.4 && parseFloat(item.score) < 0.7,
                     "text-red-600": parseFloat(item.score) < 0.4,
                   })}
                 >
                   {parseFloat(item.score).toFixed(2)}
                 </Badge>
               </div>
-              <p className="text-xs text-muted-foreground line-clamp-2">{item.content}</p>
+              <p className="text-muted-foreground line-clamp-2 text-xs">{item.content}</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Expanded view */}
-      {expandedIdx !== null && (() => {
-        const expandedItem = items.find(i => i.index === expandedIdx);
-        if (!expandedItem) return null;
-        return (
-          <Card className="border-primary/50 bg-primary/5">
-            <CardContent className="p-3">
-              <div className="mb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">[{expandedItem.index}]</Badge>
-                  <span className="text-xs font-medium">{expandedItem.source}</span>
+      {expandedIdx !== null &&
+        (() => {
+          const expandedItem = items.find((i) => i.index === expandedIdx);
+          if (!expandedItem) return null;
+          return (
+            <Card className="border-primary/50 bg-primary/5">
+              <CardContent className="p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">[{expandedItem.index}]</Badge>
+                    <span className="text-xs font-medium">{expandedItem.source}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => setExpandedIdx(null)}
+                  >
+                    <ChevronUp className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6"
-                  onClick={() => setExpandedIdx(null)}
-                >
-                  <ChevronUp className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                {expandedItem.content}
-              </p>
-            </CardContent>
-          </Card>
-        );
-      })()}
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                  {expandedItem.content}
+                </p>
+              </CardContent>
+            </Card>
+          );
+        })()}
     </div>
   );
 }
@@ -215,7 +216,7 @@ function WebSearchResults({ result }: { result: string }) {
   if (items.length === 0) {
     if (result.includes("No web results")) {
       return (
-        <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-2 py-2 text-sm">
           <Globe className="h-4 w-4" />
           No web results found
         </div>
@@ -226,28 +227,28 @@ function WebSearchResults({ result }: { result: string }) {
 
   return (
     <div className="space-y-2 py-1">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+      <div className="text-muted-foreground flex items-center gap-2 text-xs">
         <Globe className="h-3.5 w-3.5" />
         {items.length} web result{items.length !== 1 ? "s" : ""}
       </div>
       {items.map((item) => (
-        <div key={item.index} className="rounded-md border bg-background p-2.5">
+        <div key={item.index} className="bg-background rounded-md border p-2.5">
           <div className="flex items-start gap-2">
-            <Badge variant="secondary" className="text-[10px] px-1 py-0 shrink-0 mt-0.5">
+            <Badge variant="secondary" className="mt-0.5 shrink-0 px-1 py-0 text-[10px]">
               [{item.index}]
             </Badge>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-medium truncate">{item.title}</p>
+              <p className="truncate text-xs font-medium">{item.title}</p>
               <a
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-[10px] text-primary hover:underline truncate"
+                className="text-primary flex items-center gap-1 truncate text-[10px] hover:underline"
               >
                 <Link className="h-2.5 w-2.5 shrink-0" />
                 {item.url}
               </a>
-              <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{item.content}</p>
+              <p className="text-muted-foreground mt-1 line-clamp-2 text-xs">{item.content}</p>
             </div>
           </div>
         </div>
@@ -268,7 +269,11 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
     error: { icon: AlertCircle, color: "text-red-500", animate: false },
   };
 
-  const { icon: StatusIcon, color, animate } = statusConfig[toolCall.status] || statusConfig.pending;
+  const {
+    icon: StatusIcon,
+    color,
+    animate,
+  } = statusConfig[toolCall.status] || statusConfig.pending;
 
   const resultText =
     toolCall.result !== undefined
@@ -292,29 +297,29 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
 
   return (
     <Card className="bg-muted/50">
-      <CardHeader className="py-2 px-3">
+      <CardHeader className="px-3 py-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {isDateTime ? (
-              <Clock className="h-4 w-4 text-primary" />
+              <Clock className="text-primary h-4 w-4" />
             ) : isRAGSearch ? (
-              <Search className="h-4 w-4 text-primary" />
+              <Search className="text-primary h-4 w-4" />
             ) : isWebSearch ? (
-              <Globe className="h-4 w-4 text-primary" />
+              <Globe className="text-primary h-4 w-4" />
             ) : (
-              <Wrench className="h-4 w-4 text-muted-foreground" />
+              <Wrench className="text-muted-foreground h-4 w-4" />
             )}
             <CardTitle className="text-sm font-medium">
               {isDateTime
                 ? "Current Date & Time"
                 : isRAGSearch
-                ? "Knowledge Base Search"
-                : isWebSearch
-                ? "Web Search"
-                : toolCall.name}
+                  ? "Knowledge Base Search"
+                  : isWebSearch
+                    ? "Web Search"
+                    : toolCall.name}
             </CardTitle>
             {(isRAGSearch || isWebSearch) && toolCall.args?.query ? (
-              <span className="text-xs text-muted-foreground italic truncate max-w-[200px]">
+              <span className="text-muted-foreground max-w-[200px] truncate text-xs italic">
                 &ldquo;{String(toolCall.args.query)}&rdquo;
               </span>
             ) : null}
@@ -331,13 +336,11 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
                 {showRaw ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
               </Button>
             )}
-            <StatusIcon
-              className={cn("h-4 w-4", color, animate && "animate-spin")}
-            />
+            <StatusIcon className={cn("h-4 w-4", color, animate && "animate-spin")} />
           </div>
         </div>
       </CardHeader>
-      <CardContent className="py-2 px-3">
+      <CardContent className="px-3 py-2">
         {/* Specialized rendering */}
         {toolCall.status === "completed" && !showRaw && isDateTime && (
           <DateTimeResult result={resultText} />
@@ -354,14 +357,14 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
           <div className="space-y-2">
             {/* Arguments */}
             <div className="group relative">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-xs text-muted-foreground">Arguments:</p>
+              <div className="mb-1 flex items-center justify-between">
+                <p className="text-muted-foreground text-xs">Arguments:</p>
                 <CopyButton
                   text={JSON.stringify(toolCall.args, null, 2)}
                   className="opacity-0 group-hover:opacity-100"
                 />
               </div>
-              <pre className="text-xs bg-background p-2 rounded overflow-x-auto">
+              <pre className="bg-background overflow-x-auto rounded p-2 text-xs">
                 {JSON.stringify(toolCall.args, null, 2)}
               </pre>
             </div>
@@ -369,14 +372,11 @@ export function ToolCallCard({ toolCall }: ToolCallCardProps) {
             {/* Result */}
             {toolCall.result !== undefined && (
               <div className="group relative">
-                <div className="flex items-center justify-between mb-1">
-                  <p className="text-xs text-muted-foreground">Result:</p>
-                  <CopyButton
-                    text={resultText}
-                    className="opacity-0 group-hover:opacity-100"
-                  />
+                <div className="mb-1 flex items-center justify-between">
+                  <p className="text-muted-foreground text-xs">Result:</p>
+                  <CopyButton text={resultText} className="opacity-0 group-hover:opacity-100" />
                 </div>
-                <pre className="text-xs bg-background p-2 rounded overflow-x-auto max-h-48 overflow-y-auto">
+                <pre className="bg-background max-h-48 overflow-x-auto overflow-y-auto rounded p-2 text-xs">
                   {resultText}
                 </pre>
               </div>

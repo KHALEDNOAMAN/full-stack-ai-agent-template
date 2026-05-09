@@ -1,6 +1,5 @@
-{%- if cookiecutter.enable_teams and cookiecutter.use_jwt %}
 "use client";
-{% raw %}
+
 import { useEffect, useState } from "react";
 import { use } from "react";
 import { UserPlus, ArrowLeft } from "lucide-react";
@@ -43,7 +42,9 @@ export default function OrgMembersPage({ params }: PageProps) {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold">Members</h1>
-          <p className="text-sm text-muted-foreground">{total} member{total !== 1 ? "s" : ""}</p>
+          <p className="text-muted-foreground text-sm">
+            {total} member{total !== 1 ? "s" : ""}
+          </p>
         </div>
         {canManage && (
           <Button size="sm" onClick={() => setInviteOpen(true)}>
@@ -81,10 +82,15 @@ export default function OrgMembersPage({ params }: PageProps) {
           </CardHeader>
           <CardContent className="space-y-2">
             {pendingInvitations.map((inv) => (
-              <div key={inv.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div
+                key={inv.id}
+                className="flex items-center justify-between rounded-md border px-3 py-2"
+              >
                 <div>
                   <p className="text-sm font-medium">{inv.email}</p>
-                  <Badge variant="outline" className="mt-0.5 text-[10px]">{inv.role}</Badge>
+                  <Badge variant="outline" className="mt-0.5 text-[10px]">
+                    {inv.role}
+                  </Badge>
                 </div>
                 {canManage && (
                   <Button
@@ -106,5 +112,3 @@ export default function OrgMembersPage({ params }: PageProps) {
     </div>
   );
 }
-{% endraw %}
-{%- endif %}
