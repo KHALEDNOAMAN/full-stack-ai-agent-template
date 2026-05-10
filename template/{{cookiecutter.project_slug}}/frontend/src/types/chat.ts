@@ -43,6 +43,9 @@ export interface ChatMessage {
   /** Reasoning trace from extended-thinking models. Rendered dimmed +
    *  collapsible above the final response. */
   thinking?: string;
+  /** True while the message is sitting in the local outbound queue waiting
+   *  for the WS to reconnect or the previous turn to finish. */
+  queued?: boolean;
 }
 
 export interface ToolCall {
